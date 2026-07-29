@@ -33,11 +33,23 @@ export interface IEducation {
     endDate: string;
 }
 
+export const RESUME_TEMPLATES = [
+    "classic",
+    "formal",
+    "creative",
+    "precision",
+    "capability",
+    "purity",
+] as const;
+
+export type ResumeTemplate = (typeof RESUME_TEMPLATES)[number];
+
 export interface IResume {
     _id?: string;
     user_id: Types.ObjectId;
     title: string;
     summary: string;
+    template: ResumeTemplate;
     personalInfo: IPersonalInfo;
     workExperience?: IWorkExperience[];
     projects: IProjects[];

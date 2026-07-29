@@ -1,12 +1,18 @@
 import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { requireProPlan } from "@/lib/plan";
+import { handleApiError } from "@/lib/api-error";
+import connectToDB from "@/lib/mongodb";
 import type { ImproveContentBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    await getCurrentUser();
+    await connectToDB();
+
+    const userId = await getCurrentUser();
+    await requireProPlan(userId);
 
     const body: ImproveContentBody = await req.json();
     const { content } = body;
@@ -80,13 +86,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.log("error in improvedContent api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in improvedContent api");
   }
 }

@@ -1,8 +1,43 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/home/sections/site-header";
 import { SiteFooter } from "@/components/home/sections/site-footer";
+import { useSession } from "@/hooks/useSession";
+import { createStripeCheckoutSessionApi } from "@/apis/billing.api";
 
 export default function PricingPage() {
+  const router = useRouter();
+  const { user, loading } = useSession();
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+
+  const handleUpgrade = async () => {
+    if (!user) {
+      router.push("/signup");
+      return;
+    }
+
+    setCheckingOut(true);
+    setCheckoutError("");
+
+    try {
+      const response = await createStripeCheckoutSessionApi({ plan: "pro" });
+      const url = response?.data?.url;
+      if (url) {
+        window.location.href = url;
+      } else {
+        setCheckoutError("Could not start checkout. Please try again.");
+        setCheckingOut(false);
+      }
+    } catch {
+      setCheckoutError("Could not start checkout. Please try again.");
+      setCheckingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-on-surface">
       <SiteHeader />
@@ -38,10 +73,10 @@ export default function PricingPage() {
                   <span className="font-body-md text-on-surface-variant">/month</span>
                 </div>
                 <Link
-                  href="/signup"
+                  href={loading ? "#" : user ? "/dashboard" : "/signup"}
                   className="w-full text-center bg-surface-variant text-on-surface font-title-md py-3 rounded-full hover:bg-surface-dim transition-colors mb-8"
                 >
-                  Get Started
+                  {user ? "Go to Dashboard" : "Get Started"}
                 </Link>
                 <ul className="space-y-4 flex-grow font-body-md text-on-surface">
                   <li className="flex items-start gap-3">
@@ -76,12 +111,17 @@ export default function PricingPage() {
                   <span className="font-display-xl text-on-surface">$12</span>
                   <span className="font-body-md text-on-surface-variant">/month</span>
                 </div>
-                <Link
-                  href="/signup"
-                  className="w-full text-center bg-primary-container text-white font-title-md py-3 rounded-full hover:bg-primary transition-colors mb-8"
-                >
-                  Start Free Trial
-                </Link>
+                <div className="mb-8">
+                  <button
+                    type="button"
+                    onClick={handleUpgrade}
+                    disabled={checkingOut || user?.plan === "pro"}
+                    className="w-full text-center bg-primary-container text-white font-title-md py-3 rounded-full hover:bg-primary transition-colors disabled:opacity-50"
+                  >
+                    {checkingOut ? "Redirecting..." : user?.plan === "pro" ? "Current Plan" : "Start Free Trial"}
+                  </button>
+                  {checkoutError && <p className="text-sm text-red-600 mt-2">{checkoutError}</p>}
+                </div>
                 <ul className="space-y-4 flex-grow font-body-md text-on-surface">
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>

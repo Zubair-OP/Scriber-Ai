@@ -2,6 +2,7 @@ import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { handleApiError } from "@/lib/api-error";
 import UserModel from "@/models/user.model";
 import { StripeCheckoutBody } from "@/types/user.types";
 import { stripe } from "@/lib/stripe";
@@ -50,18 +51,23 @@ export async function POST(req: NextRequest) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer_email: user.email,
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/pricing?checkout=success`,
-      cancel_url: `${appUrl}/pricing?checkout=cancelled`,
-      client_reference_id: userId,
-      metadata: { userId },
-      subscription_data: {
+    const session = await stripe.checkout.sessions.create(
+      {
+        mode: "subscription",
+        customer_email: user.email,
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: `${appUrl}/pricing?checkout=success`,
+        cancel_url: `${appUrl}/pricing?checkout=cancelled`,
+        client_reference_id: userId,
         metadata: { userId },
+        subscription_data: {
+          metadata: { userId },
+        },
       },
-    });
+      // Bucketed to a short window so rapid double-submits are deduped without
+      // pinning the user to a stale session on a later, legitimate retry.
+      { idempotencyKey: `checkout-session-${userId}-${plan}-${Math.floor(Date.now() / 10_000)}` }
+    );
 
     return NextResponse.json<ApiResponse>(
       {
@@ -75,13 +81,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in checkout session api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in checkout session api");
   }
 }

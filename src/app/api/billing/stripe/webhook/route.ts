@@ -8,7 +8,7 @@ type StripeSubscriptionPayload = {
   id: string;
   customer: string | { id: string };
   metadata?: Record<string, string>;
-  current_period_end?: number;
+  items?: { data?: Array<{ current_period_end?: number }> };
   status: string;
 };
 
@@ -33,14 +33,14 @@ const updateUserFromSubscription = async (subscription: StripeSubscriptionPayloa
     return;
   }
 
+  const currentPeriodEnd = subscription.items?.data?.[0]?.current_period_end;
+
   await UserModel.findByIdAndUpdate(userId, {
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : undefined,
     plan: subscription.status === "active" ? "pro" : "free",
     subscriptionStatus: subscription.status === "active" ? "active" : subscription.status,
-    currentPeriodEnd: subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000)
-      : undefined,
+    currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
   });
 };
 
@@ -95,17 +95,6 @@ export async function POST(req: NextRequest) {
     if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as StripeSubscriptionPayload;
       await updateUserFromSubscription(subscription);
-
-      if (event.type === "customer.subscription.deleted") {
-        const userId = subscription.metadata?.userId;
-        if (userId) {
-          await UserModel.findByIdAndUpdate(userId, {
-            plan: "free",
-            subscriptionStatus: "canceled",
-            currentPeriodEnd: undefined,
-          });
-        }
-      }
     }
 
     return NextResponse.json<ApiResponse>(

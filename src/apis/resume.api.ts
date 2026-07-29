@@ -35,4 +35,21 @@ export const generateFinalResumeApi = async (resumeId: string) => {
   const response = await axios.post(`/api/resume/${resumeId}/generate`);
 
   return response.data;
+};
+
+export const downloadResumePdfApi = async (resumeId: string) => {
+  const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
+    responseType: "blob",
+  });
+
+  const contentDisposition: string = response.headers["content-disposition"] || "";
+  const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+  const fileName = fileNameMatch?.[1] || "resume.pdf";
+
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
 };

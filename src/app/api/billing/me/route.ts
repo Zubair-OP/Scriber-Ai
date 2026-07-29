@@ -2,6 +2,7 @@ import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { handleApiError } from "@/lib/api-error";
 import UserModel from "@/models/user.model";
 
 export async function GET() {
@@ -37,13 +38,6 @@ export async function GET() {
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in billing me api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Unauthorized",
-      },
-      { status: 401 }
-    );
+    return handleApiError(error, "error in billing me api");
   }
 }

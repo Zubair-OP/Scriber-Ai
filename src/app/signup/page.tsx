@@ -27,7 +27,7 @@ export default function SignupPage() {
 
     try {
       await registerApi({ name, email, password });
-      router.push("/login");
+      router.push("/dashboard");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };

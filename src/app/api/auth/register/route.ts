@@ -66,7 +66,6 @@ export async function POST(req: NextRequest) {
     const cookieOptions = getAuthCookieOptions();
 
     response.cookies.set("token", token, cookieOptions);
-    response.cookies.set("Token", token, cookieOptions);
 
     return response;
     } catch (error) 

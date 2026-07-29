@@ -21,8 +21,8 @@ export default function LoginPage() {
     setError("");
 
     try {
-      await loginApi({ email, password });
-      router.push("/");
+      await loginApi({ email, password, rememberMe });
+      router.push("/dashboard");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };
@@ -116,9 +116,9 @@ export default function LoginPage() {
                 </label>
               </div>
 
-              <a href="#" className="text-sm font-medium text-primary-container hover:text-primary transition-colors">
+              <Link href="/forgot-password" className="text-sm font-medium text-primary-container hover:text-primary transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <button

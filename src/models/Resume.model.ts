@@ -16,6 +16,11 @@ const resumeSchema = new mongoose.Schema<IResume>(
       type: String,
       default: "",
     },
+    template: {
+      type: String,
+      enum: ["classic", "formal", "creative", "precision", "capability", "purity"],
+      default: "classic",
+    },
     personalInfo: {
       type: {
         fullname: String,
@@ -23,6 +28,7 @@ const resumeSchema = new mongoose.Schema<IResume>(
         mobile: String,
         location: String,
         github: String,
+        linkedIn: String,
         portfolio: String,
       },
       default: {},

@@ -43,8 +43,8 @@ export const generateExperienceApi = async (payload: {
  * Generate Project Description
  */
 export const generateProjectDescriptionApi = async (payload: {
-  jobRole: string;
-  projectTitle: string;
+  jobTitle: string;
+  experienceLevel: string;
   techStack: string[];
 }) => {
   const response = await axios.post(

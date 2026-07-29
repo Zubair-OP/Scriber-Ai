@@ -1,18 +1,24 @@
 import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { requireProPlan } from "@/lib/plan";
+import { handleApiError } from "@/lib/api-error";
+import connectToDB from "@/lib/mongodb";
 import { GenerateExperienceDescriptionBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        await getCurrentUser();
+        await connectToDB();
+
+        const userId = await getCurrentUser();
+        await requireProPlan(userId);
 
         const body: GenerateExperienceDescriptionBody = await req.json();
 
         const { experienceLevel, yearsOfExperience, techStack, jobRole } = body;
 
-        if (!experienceLevel || !jobRole || !techStack)
+        if (!experienceLevel || !jobRole || !Array.isArray(techStack) || techStack.length === 0)
             return NextResponse.json<ApiResponse>({
                 success: false, message: "Missing fields"
             }, { status: 400 });
@@ -84,13 +90,6 @@ export async function POST(req: NextRequest) {
         })
 
     } catch (error) {
-        console.log("error in workExperienceDescription generation api", error);
-        return NextResponse.json<ApiResponse>(
-            {
-                success: false,
-                message: "Something went wrong",
-            },
-            { status: 500 }
-        );
+        return handleApiError(error, "error in workExperienceDescription generation api");
     }
 }

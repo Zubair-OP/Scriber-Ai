@@ -10,8 +10,8 @@ export async function POST(req: NextRequest) {
     try {
         await connectToDB()
         const data: LoginBody = await req.json()
-        const { email, password } = data
-        const rememberMe = Boolean((data as LoginBody & { rememberMe?: boolean }).rememberMe)
+        const { email, password, rememberMe: rememberMeInput } = data
+        const rememberMe = Boolean(rememberMeInput)
 
         if (!email || !password) return NextResponse.json<ApiResponse>(
             {
@@ -71,7 +71,6 @@ export async function POST(req: NextRequest) {
         const cookieOptions = getAuthCookieOptions(rememberMe)
 
         response.cookies.set("token", token, cookieOptions)
-        response.cookies.set("Token", token, cookieOptions)
 
         return response
 

@@ -21,7 +21,7 @@ const securityHeaderEntries: Array<[string, string]> = [
   ["Cross-Origin-Resource-Policy", "same-origin"],
 ];
 
-export const protectedApiPrefixes = ["/api/auth", "/api/ai", "/api/resume"];
+export const protectedApiPrefixes = ["/api/auth", "/api/ai", "/api/resume", "/api/billing"];
 
 export const apiCacheHeaderEntries: Array<[string, string]> = [
   ["Cache-Control", "no-store, max-age=0"],
@@ -73,6 +73,15 @@ export function getRateLimitRule(pathname: string): RateLimitRule | null {
 
   if (pathname.startsWith("/api/resume")) {
     return { limit: 60, windowMs: 60 * 1000 };
+  }
+
+  if (pathname.startsWith("/api/billing/stripe/webhook")) {
+    // Stripe's own servers call this, authenticated via signature verification, not per-user cookies.
+    return null;
+  }
+
+  if (pathname.startsWith("/api/billing")) {
+    return { limit: 20, windowMs: 60 * 1000 };
   }
 
   return null;

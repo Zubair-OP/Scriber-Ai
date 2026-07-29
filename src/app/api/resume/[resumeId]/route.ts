@@ -1,8 +1,11 @@
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { handleApiError } from "@/lib/api-error";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
 import { ApiResponse } from "@/types/api.types";
+import { RESUME_TEMPLATES } from "@/types/resume.types";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 const allowedPersonalInfoKeys = [
   "fullname",
@@ -10,6 +13,7 @@ const allowedPersonalInfoKeys = [
   "mobile",
   "location",
   "github",
+  "linkedIn",
   "portfolio",
 ];
 
@@ -18,6 +22,9 @@ const sanitizeResumeUpdate = (body: Record<string, unknown>) => {
 
   if (typeof body.title === "string") update.title = body.title;
   if (typeof body.summary === "string") update.summary = body.summary;
+  if (typeof body.template === "string" && RESUME_TEMPLATES.includes(body.template as (typeof RESUME_TEMPLATES)[number])) {
+    update.template = body.template;
+  }
 
   if (body.personalInfo && typeof body.personalInfo === "object" && !Array.isArray(body.personalInfo)) {
     const personalInfo = body.personalInfo as Record<string, unknown>;
@@ -47,17 +54,23 @@ export async function GET(
     await connectToDB();
 
     const userId = await getCurrentUser();
-    console.log("user in get resume", userId);
 
     const { resumeId } = await params;
-    console.log("in get resume ", resumeId);
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          message: "Invalid resume id",
+        },
+        { status: 400 }
+      );
+    }
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
       user_id: userId,
     });
-
-    console.log("resume found", resume);
 
     if (!resume)
       return NextResponse.json<ApiResponse>(
@@ -77,14 +90,7 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in get resume api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in get resume api");
   }
 }
 
@@ -96,13 +102,20 @@ export async function PATCH(
     await connectToDB();
 
     const userId = await getCurrentUser();
-    console.log("loggedin user", userId);
 
     const body = await req.json();
-    console.log("body-->", body);
 
     const { resumeId } = await params;
-    console.log("resume id", resumeId);
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          message: "Invalid resume id",
+        },
+        { status: 400 }
+      );
+    }
 
     const update = sanitizeResumeUpdate(body);
 
@@ -148,14 +161,7 @@ export async function PATCH(
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in updatedResume api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in updatedResume api");
   }
 }
 
@@ -169,6 +175,16 @@ export async function DELETE(
     const userId = await getCurrentUser();
 
     const { resumeId } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          message: "Invalid resume id",
+        },
+        { status: 400 }
+      );
+    }
 
     const deletedResume = await ResumeModel.findOneAndDelete({
       _id: resumeId,
@@ -192,13 +208,6 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in delete resume api", error);
-    return NextResponse.json<ApiResponse>(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in delete resume api");
   }
 }

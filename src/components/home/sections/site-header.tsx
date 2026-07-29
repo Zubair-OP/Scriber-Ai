@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { LogoIcon } from "@/components/home/ui";
+import { useSession } from "@/hooks/useSession";
+import { logoutApi } from "@/apis/auth.api";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, refetch } = useSession();
+
+  const handleLogout = async () => {
+    await logoutApi();
+    await refetch();
+    router.push("/");
+  };
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
@@ -72,21 +82,45 @@ export function SiteHeader() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-1 ml-auto">
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-subtle px-3 py-1.5 rounded-full transition-colors"
-          >
-            Log In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-primary-container text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary active:scale-[0.98] transition-all flex items-center gap-1.5"
-          >
-            <span>Build Resume</span>
-            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </Link>
+          {loading ? null : user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className={`hidden sm:inline-flex text-sm font-medium px-3 py-1.5 rounded-full transition-colors ${
+                  isActive("/dashboard")
+                    ? "bg-surface text-on-surface"
+                    : "text-on-surface-variant hover:text-on-surface hover:bg-surface-subtle"
+                }`}
+              >
+                Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="bg-primary-container text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary active:scale-[0.98] transition-all"
+              >
+                Log Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-subtle px-3 py-1.5 rounded-full transition-colors"
+              >
+                Log In
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-primary-container text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary active:scale-[0.98] transition-all flex items-center gap-1.5"
+              >
+                <span>Build Resume</span>
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

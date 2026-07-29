@@ -1,9 +1,12 @@
 import { getCurrentUser } from "@/lib/getCurrentUser";
+import { requireProPlan } from "@/lib/plan";
+import { handleApiError } from "@/lib/api-error";
 import { generateAiContent } from "@/lib/gemini";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 export async function POST(
   req: NextRequest,
@@ -13,7 +16,16 @@ export async function POST(
     await connectToDB();
 
     const userId = await getCurrentUser();
+    await requireProPlan(userId);
+
     const { resumeId } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, message: "Invalid resume id" },
+        { status: 400 }
+      );
+    }
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
@@ -61,6 +73,7 @@ export async function POST(
     - Mobile: ${personalInfo?.mobile || "N/A"}
     - Location: ${personalInfo?.location || "N/A"}
     - GitHub: ${personalInfo?.github || "N/A"}
+    - LinkedIn: ${personalInfo?.linkedIn || "N/A"}
     - Portfolio: ${personalInfo?.portfolio || "N/A"}
     
     Professional Summary:
@@ -135,6 +148,7 @@ export async function POST(
         "mobile": string,
         "location": string,
         "github": string,
+        "linkedIn": string,
         "portfolio": string
       },
       "summary": string,
@@ -203,10 +217,6 @@ export async function POST(
       { status: 200 }
     );
   } catch (error) {
-    console.log("error in generate final resume api", error);
-    return NextResponse.json<ApiResponse>(
-      { success: false, message: "Something went wrong" },
-      { status: 500 }
-    );
+    return handleApiError(error, "error in generate final resume api");
   }
 }

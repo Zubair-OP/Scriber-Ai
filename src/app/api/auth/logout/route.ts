@@ -17,7 +17,6 @@ export async function POST() {
   };
 
   response.cookies.set("token", "", clearedCookie);
-  response.cookies.set("Token", "", clearedCookie);
 
   return response;
 }
