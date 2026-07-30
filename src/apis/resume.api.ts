@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { ResumeTemplate } from "@/types/resume.types";
 
 export const getAllResumesApi = async () => {
   const response = await axios.get("/api/resume");
@@ -10,8 +11,11 @@ export const getResumeByIdApi = async (resumeId: string) => {
   return response.data;
 };
 
-export const createResumeApi = async () => {
-  const response = await axios.post("/api/resume/create");
+export const createResumeApi = async (template?: ResumeTemplate) => {
+  const response = await axios.post(
+    "/api/resume/create",
+    template ? { template } : undefined
+  );
 
   return response.data;
 };

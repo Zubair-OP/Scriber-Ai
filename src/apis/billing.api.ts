@@ -17,3 +17,9 @@ export const createStripeCheckoutSessionApi = async (
 
   return response.data;
 };
+
+export const confirmStripeCheckoutSessionApi = async (sessionId: string) => {
+  const response = await axios.post("/api/billing/stripe/confirm", { sessionId });
+
+  return response.data;
+};

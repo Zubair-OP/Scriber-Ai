@@ -21,6 +21,16 @@ const resumeSchema = new mongoose.Schema<IResume>(
       enum: ["classic", "formal", "creative", "precision", "capability", "purity"],
       default: "classic",
     },
+    colorTheme: {
+      type: String,
+      enum: ["default", "blue", "purple", "green", "black", "orange", "teal"],
+      default: "default",
+    },
+    typographyTheme: {
+      type: String,
+      enum: ["modern", "corporate", "elegant", "minimal", "editorial"],
+      default: "modern",
+    },
     personalInfo: {
       type: {
         fullname: String,

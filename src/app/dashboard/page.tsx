@@ -12,8 +12,7 @@ import {
   getAllResumesApi,
 } from "@/apis/resume.api";
 import type { IResume } from "@/types/resume.types";
-
-const FREE_PLAN_RESUME_LIMIT = 1;
+import { getResumeLimit } from "@/lib/plan-limits";
 
 function formatDate(value?: string | Date) {
   if (!value) return "Draft";
@@ -55,8 +54,8 @@ export default function DashboardPage() {
     })();
   }, [user]);
 
-  const atFreeLimit =
-    user?.plan !== "pro" && resumes.length >= FREE_PLAN_RESUME_LIMIT;
+  const resumeLimit = getResumeLimit(user?.plan);
+  const atResumeLimit = Number.isFinite(resumeLimit) && resumes.length >= resumeLimit;
 
   const handleCreate = async () => {
     setError("");
@@ -108,8 +107,8 @@ export default function DashboardPage() {
         <section className="pt-32 pb-10 px-4 md:px-10 max-w-[1200px] mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <span className="inline-flex items-center px-3 py-1 mb-4 bg-primary/5 text-primary font-label-sm rounded-full border border-primary/10">
-                {user.plan === "pro" ? "Pro plan" : "Free plan"}
+              <span className="inline-flex items-center px-3 py-1 mb-4 bg-primary/5 text-primary font-label-sm rounded-full border border-primary/10 capitalize">
+                {user.plan || "free"} plan
               </span>
               <h1 className="font-display-lg text-on-surface">
                 Welcome back, {user.name.split(" ")[0]}
@@ -122,7 +121,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={handleCreate}
-              disabled={creating || atFreeLimit}
+              disabled={creating || atResumeLimit}
               className="inline-flex items-center justify-center gap-2 bg-primary-container text-white font-title-md px-6 py-3 rounded-full hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               <span className="material-symbols-outlined text-[20px]">add</span>
@@ -136,17 +135,28 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {atFreeLimit && (
+          {atResumeLimit && (
             <div className="mt-6 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <p className="font-body-md text-on-surface">
-                Free plan is limited to {FREE_PLAN_RESUME_LIMIT} resume. Upgrade to Pro for unlimited resumes and AI assistance.
+                {user.plan === "pro"
+                  ? "Pro plan is limited to 5 resumes. Contact sales about Enterprise for unlimited resumes."
+                  : "Free plan is limited to 1 resume. Upgrade to Pro for up to 5 resumes and AI assistance."}
               </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
-              >
-                Upgrade to Pro
-              </Link>
+              {user.plan === "pro" ? (
+                <a
+                  href="mailto:sales@scriberbuilder.com"
+                  className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
+                >
+                  Contact Sales
+                </a>
+              ) : (
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
+                >
+                  Upgrade to Pro
+                </Link>
+              )}
             </div>
           )}
         </section>

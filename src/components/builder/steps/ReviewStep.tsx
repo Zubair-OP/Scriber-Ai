@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { getATSScoreApi } from "@/apis/ai.api";
 import { downloadResumePdfApi, generateFinalResumeApi } from "@/apis/resume.api";
 import { AIActionButton } from "@/components/builder/AIActionButton";
+import { DesignControls } from "@/components/builder/DesignControls";
 import { TEMPLATE_COMPONENTS, TEMPLATE_LABELS } from "@/components/builder/templates";
 import type { StepProps } from "@/components/builder/types";
 import { RESUME_TEMPLATES } from "@/types/resume.types";
@@ -43,8 +44,6 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
 
-  const SelectedTemplate = TEMPLATE_COMPONENTS[draft.template];
-
   const resumeText = useMemo(() => draftToPlainText(draft), [draft]);
 
   const handleCheckAtsScore = async () => {
@@ -53,6 +52,11 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
   };
 
   const handlePolish = async () => {
+    const confirmed = window.confirm(
+      "This will overwrite your summary, experience, projects, education, skills, and certifications with an AI-polished version based on your last save. Any unsaved changes (including reordering) will be lost. Continue?"
+    );
+    if (!confirmed) return;
+
     setPolishNotice("");
     const response = await generateFinalResumeApi(resumeId);
     const polished = response?.data;
@@ -127,6 +131,16 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
         </div>
       </div>
 
+      <div className="lg:hidden">
+        <p className="font-label-lg text-on-surface mb-3">Color &amp; typography</p>
+        <DesignControls
+          colorTheme={draft.colorTheme}
+          typographyTheme={draft.typographyTheme}
+          onColorChange={(colorTheme) => updateDraft({ colorTheme })}
+          onTypographyChange={(typographyTheme) => updateDraft({ typographyTheme })}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <AIActionButton label="Check ATS score" onRun={handleCheckAtsScore} />
         <AIActionButton label="Polish entire resume with AI" onRun={handlePolish} />
@@ -167,15 +181,6 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
           )}
         </div>
       )}
-
-      <div>
-        <p className="font-label-lg text-on-surface mb-3">Live preview</p>
-        <div className="rounded-2xl border border-surface-variant overflow-auto bg-surface-subtle/40 p-4">
-          <div className="shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-            <SelectedTemplate resume={draft} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

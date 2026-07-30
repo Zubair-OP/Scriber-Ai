@@ -82,6 +82,7 @@ export function SummaryStep({ draft, updateDraft }: StepProps) {
           onChange={(value) => updateDraft({ summary: value })}
           placeholder="Write a 2-4 sentence professional summary..."
           rows={6}
+          maxWords={80}
         />
         <AIActionButton label="Improve with AI" onRun={handleImprove} />
       </div>

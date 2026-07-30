@@ -11,7 +11,7 @@ export interface Iuser {
     stripeCustomerId?: string,
     stripeSubscriptionId?: string,
     subscriptionStatus?: "free" | "active" | "past_due" | "canceled",
-    plan?: "free" | "pro",
+    plan?: "free" | "pro" | "enterprise",
     currentPeriodEnd?: Date,
 }
 

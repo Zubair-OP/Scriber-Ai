@@ -3,6 +3,7 @@ import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 import UserModel from "@/models/user.model";
 import { stripe } from "@/lib/stripe";
+import { activateProForUser } from "@/lib/billing";
 
 type StripeSubscriptionPayload = {
   id: string;
@@ -83,11 +84,9 @@ export async function POST(req: NextRequest) {
       const userId = session.client_reference_id || session.metadata?.userId;
 
       if (userId) {
-        await UserModel.findByIdAndUpdate(userId, {
-          stripeCustomerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
-          stripeSubscriptionId: typeof session.subscription === "string" ? session.subscription : session.subscription?.id,
-          plan: "pro",
-          subscriptionStatus: "active",
+        await activateProForUser(userId, {
+          customerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
+          subscriptionId: typeof session.subscription === "string" ? session.subscription : session.subscription?.id,
         });
       }
     }

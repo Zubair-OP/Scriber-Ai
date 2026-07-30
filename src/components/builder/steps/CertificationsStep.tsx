@@ -1,21 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { SortableList } from "@/components/builder/SortableList";
 import type { StepProps } from "@/components/builder/types";
+
+interface CertificationEntry {
+  value: string;
+  _dndId: string;
+}
 
 export function CertificationsStep({ draft, updateDraft }: StepProps) {
   const [newCertification, setNewCertification] = useState("");
-  const certifications = draft.certifications || [];
+  // Derived (not backfilled) — see SkillsStep for why a per-render `.map` into
+  // fresh {value} objects can't use the ephemeral-id-backfill pattern.
+  const certifications: CertificationEntry[] = useMemo(
+    () => (draft.certifications || []).map((value, index) => ({ value, _dndId: `${index}-${value}` })),
+    [draft.certifications]
+  );
 
   const addCertification = () => {
     const value = newCertification.trim();
     if (!value) return;
-    updateDraft({ certifications: [...certifications, value] });
+    updateDraft({ certifications: [...certifications.map((c) => c.value), value] });
     setNewCertification("");
   };
 
-  const removeCertification = (index: number) => {
-    updateDraft({ certifications: certifications.filter((_, i) => i !== index) });
+  const removeCertification = (id: string) => {
+    updateDraft({ certifications: certifications.filter((c) => c._dndId !== id).map((c) => c.value) });
   };
 
   return (
@@ -52,24 +63,33 @@ export function CertificationsStep({ draft, updateDraft }: StepProps) {
       {certifications.length === 0 ? (
         <p className="font-body-md text-on-surface-variant">No certifications added yet.</p>
       ) : (
-        <ul className="space-y-2">
-          {certifications.map((certification, index) => (
-            <li
-              key={`${certification}-${index}`}
-              className="flex items-center justify-between px-4 py-3 rounded-xl border border-surface-variant bg-surface-subtle/40"
-            >
-              <span className="font-body-md text-on-surface">{certification}</span>
+        <SortableList
+          items={certifications}
+          onReorder={(next) => updateDraft({ certifications: next.map((c) => c.value) })}
+          className="space-y-2"
+          renderItem={(certification, _index, drag) => (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-surface-variant bg-surface-subtle/40">
               <button
                 type="button"
-                onClick={() => removeCertification(index)}
+                {...drag.attributes}
+                {...drag.listeners}
+                className="text-on-surface-variant/50 hover:text-on-surface-variant cursor-grab active:cursor-grabbing touch-none"
+                aria-label="Drag to reorder"
+              >
+                <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+              </button>
+              <span className="flex-1 font-body-md text-on-surface">{certification.value}</span>
+              <button
+                type="button"
+                onClick={() => removeCertification(certification._dndId)}
                 className="text-on-surface-variant hover:text-red-600"
                 aria-label="Remove certification"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+        />
       )}
     </div>
   );

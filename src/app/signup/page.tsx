@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { registerApi } from "@/apis/auth.api";
 import { LogoIcon } from "@/components/home/ui";
+import { sanitizeTemplateInput } from "@/lib/resume-validation";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const template = sanitizeTemplateInput(searchParams.get("template"));
+  const loginHref = template ? `/login?template=${template}` : "/login";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,7 +31,7 @@ export default function SignupPage() {
 
     try {
       await registerApi({ name, email, password });
-      router.push("/dashboard");
+      router.push(template ? `/resume/new?template=${template}` : "/dashboard");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };
@@ -157,7 +161,7 @@ export default function SignupPage() {
 
           <p className="mt-8 text-center text-sm text-on-surface-variant">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-semibold hover:underline">
+            <Link href={loginHref} className="text-primary font-semibold hover:underline">
               Log in
             </Link>
           </p>
@@ -206,5 +210,13 @@ export default function SignupPage() {
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary-container/10 rounded-full blur-3xl -mr-32 -mb-32"></div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

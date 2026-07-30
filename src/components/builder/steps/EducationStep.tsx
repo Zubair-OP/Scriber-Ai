@@ -1,21 +1,26 @@
 "use client";
 
-import { AddEntryButton, EntryCard, TextField } from "@/components/builder/fields";
+import { AddEntryButton, DateRangeFields, EntryCard, TextField } from "@/components/builder/fields";
+import { SortableList } from "@/components/builder/SortableList";
+import { useEntryIds } from "@/components/builder/useEntryIds";
 import type { StepProps } from "@/components/builder/types";
 import type { IEducation } from "@/types/resume.types";
+
+type Entry = IEducation & { _dndId?: string };
 
 const emptyEntry: IEducation = { institute: "", degree: "", startDate: "", endDate: "" };
 
 export function EducationStep({ draft, updateDraft }: StepProps) {
-  const entries = draft.education || [];
+  const rawEntries = (draft.education || []) as Entry[];
+  const entries = useEntryIds(rawEntries, (next) => updateDraft({ education: next }));
 
-  const updateEntry = (index: number, patch: Partial<IEducation>) => {
-    const next = entries.map((entry, i) => (i === index ? { ...entry, ...patch } : entry));
+  const updateEntry = (id: string, patch: Partial<IEducation>) => {
+    const next = entries.map((entry) => (entry._dndId === id ? { ...entry, ...patch } : entry));
     updateDraft({ education: next });
   };
 
   const addEntry = () => updateDraft({ education: [...entries, { ...emptyEntry }] });
-  const removeEntry = (index: number) => updateDraft({ education: entries.filter((_, i) => i !== index) });
+  const removeEntry = (id: string) => updateDraft({ education: entries.filter((entry) => entry._dndId !== id) });
 
   return (
     <div className="space-y-6">
@@ -26,38 +31,36 @@ export function EducationStep({ draft, updateDraft }: StepProps) {
         </p>
       </div>
 
-      <div className="space-y-5">
-        {entries.map((entry, index) => (
-          <EntryCard key={index} onRemove={() => removeEntry(index)}>
+      <SortableList
+        items={entries}
+        onReorder={(next) => updateDraft({ education: next })}
+        className="space-y-5"
+        renderItem={(entry, _index, drag) => (
+          <EntryCard onRemove={() => removeEntry(entry._dndId)} dragHandleProps={drag}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
                 label="Institute"
                 value={entry.institute}
-                onChange={(value) => updateEntry(index, { institute: value })}
+                onChange={(value) => updateEntry(entry._dndId, { institute: value })}
                 placeholder="Princeton University"
               />
               <TextField
                 label="Degree"
                 value={entry.degree}
-                onChange={(value) => updateEntry(index, { degree: value })}
+                onChange={(value) => updateEntry(entry._dndId, { degree: value })}
                 placeholder="B.S. Computer Science"
               />
-              <TextField
-                label="Start date"
-                value={entry.startDate}
-                onChange={(value) => updateEntry(index, { startDate: value })}
-                placeholder="Sep 2018"
-              />
-              <TextField
-                label="End date"
-                value={entry.endDate}
-                onChange={(value) => updateEntry(index, { endDate: value })}
-                placeholder="Jun 2022"
+              <DateRangeFields
+                startValue={entry.startDate}
+                endValue={entry.endDate}
+                onStartChange={(value) => updateEntry(entry._dndId, { startDate: value })}
+                onEndChange={(value) => updateEntry(entry._dndId, { endDate: value })}
+                presentLabel="I'm currently studying here"
               />
             </div>
           </EntryCard>
-        ))}
-      </div>
+        )}
+      />
 
       <AddEntryButton label="Add education" onClick={addEntry} />
     </div>

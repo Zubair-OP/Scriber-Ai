@@ -1,9 +1,3 @@
-export type Template = {
-  name: string;
-  description: string;
-  tier: "free" | "pro";
-};
-
 export type FaqItem = {
   question: string;
   answer: React.ReactNode;
@@ -66,27 +60,6 @@ export const featureCards = [
     description:
       "Responsive templates stay crisp on desktop, tablet, and mobile so your story looks professional everywhere it appears.",
   },
-];
-
-export const templates: Template[] = [
-  { name: "Precision", description: "A sharp editorial layout with disciplined spacing for high-signal résumés.", tier: "free" },
-  { name: "Capability", description: "Balanced and modern with a strong headline area and concise proof points.", tier: "free" },
-  { name: "Purity", description: "Minimal and airy for candidates who want maximum readability and calm structure.", tier: "free" },
-  { name: "Classic", description: "A timeless format that feels familiar to recruiters and easy to scan at a glance.", tier: "free" },
-  { name: "Formal", description: "Designed for traditional industries where clarity, hierarchy, and trust matter most.", tier: "free" },
-  { name: "Creative", description: "A refined visual system with enough personality to stand out without hurting ATS readability.", tier: "free" },
-  { name: "Modern", description: "A confident contemporary layout built for product, design, and operations roles.", tier: "free" },
-  { name: "Minimalist", description: "Quiet, focused, and stripped down to the essentials for maximum impact.", tier: "free" },
-  { name: "Infographic", description: "Adds structured data visual cues while keeping the experience professional and scannable.", tier: "free" },
-  { name: "Unique", description: "A subtle asymmetric composition for candidates who want memorable presentation without clutter.", tier: "free" },
-  { name: "International", description: "Built for multi-market applications with a clean, globally legible hierarchy.", tier: "free" },
-  { name: "Experienced", description: "Highlights long careers with stronger section separation and deeper evidence blocks.", tier: "free" },
-  { name: "Academic", description: "Ideal for research, teaching, and graduate profiles with publication-friendly spacing.", tier: "free" },
-  { name: "Entry-Level", description: "Optimized for internships and first roles with more emphasis on projects and skills.", tier: "free" },
-  { name: "Successful", description: "A confident layout that foregrounds outcomes, wins, and measurable achievements.", tier: "free" },
-  { name: "Steadfast", description: "A premium, highly structured format with broader spacing and stronger visual weight.", tier: "pro" },
-  { name: "Neat", description: "A polished premium design with precise alignment and elevated editorial spacing.", tier: "pro" },
-  { name: "Outstanding", description: "The most polished tier, with extra refinement for executive-level presentation.", tier: "pro" },
 ];
 
 export const exampleCategories = [

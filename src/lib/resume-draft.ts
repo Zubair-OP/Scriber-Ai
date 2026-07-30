@@ -4,6 +4,8 @@ export function resumeToDraft(resume: Record<string, unknown>): ResumeDraft {
   return {
     title: typeof resume.title === "string" ? resume.title : "",
     template: (resume.template as ResumeDraft["template"]) || "classic",
+    colorTheme: (resume.colorTheme as ResumeDraft["colorTheme"]) || "default",
+    typographyTheme: (resume.typographyTheme as ResumeDraft["typographyTheme"]) || "modern",
     summary: typeof resume.summary === "string" ? resume.summary : "",
     personalInfo: { ...emptyDraft.personalInfo, ...(resume.personalInfo as object) },
     education: Array.isArray(resume.education) ? resume.education : [],

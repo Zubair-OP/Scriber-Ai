@@ -44,12 +44,36 @@ export const RESUME_TEMPLATES = [
 
 export type ResumeTemplate = (typeof RESUME_TEMPLATES)[number];
 
+export const RESUME_COLOR_THEMES = [
+    "default",
+    "blue",
+    "purple",
+    "green",
+    "black",
+    "orange",
+    "teal",
+] as const;
+
+export type ResumeColorTheme = (typeof RESUME_COLOR_THEMES)[number];
+
+export const RESUME_TYPOGRAPHY_THEMES = [
+    "modern",
+    "corporate",
+    "elegant",
+    "minimal",
+    "editorial",
+] as const;
+
+export type ResumeTypographyTheme = (typeof RESUME_TYPOGRAPHY_THEMES)[number];
+
 export interface IResume {
     _id?: string;
     user_id: Types.ObjectId;
     title: string;
     summary: string;
     template: ResumeTemplate;
+    colorTheme?: ResumeColorTheme;
+    typographyTheme?: ResumeTypographyTheme;
     personalInfo: IPersonalInfo;
     workExperience?: IWorkExperience[];
     projects: IProjects[];

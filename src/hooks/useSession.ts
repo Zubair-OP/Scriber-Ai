@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getCurrentSessionApi } from "@/apis/auth.api";
+import { hasProAccess } from "@/lib/plan-limits";
 
 export interface SessionUser {
   _id: string;
   name: string;
   email: string;
   mobile?: string;
-  plan: "free" | "pro";
+  plan: "free" | "pro" | "enterprise";
   subscriptionStatus?: string;
   currentPeriodEnd?: string;
 }
@@ -34,5 +35,5 @@ export function useSession() {
     })();
   }, [fetchSession]);
 
-  return { user, loading, isPro: user?.plan === "pro", refetch: fetchSession };
+  return { user, loading, isPro: hasProAccess(user?.plan), refetch: fetchSession };
 }

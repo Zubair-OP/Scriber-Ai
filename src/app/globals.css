@@ -100,6 +100,16 @@ body {
   font-family: 'Geist', system-ui, -apple-system, sans-serif;
 }
 
+/* The PDF export route renders only #resume-print-area with nothing else on
+   the page. Without this, the root layout's `min-h-screen` (meant for normal
+   app pages with a header/footer) stretches <body> taller than the resume
+   content and its off-white --background paints a stray colored block below
+   the resume in the exported PDF. */
+body:has(#resume-print-area) {
+  min-height: 0;
+  background-color: #fff;
+}
+
 /* Material Symbols Outlined Icon Styling */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';

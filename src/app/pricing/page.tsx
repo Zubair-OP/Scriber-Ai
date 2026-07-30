@@ -1,20 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/home/sections/site-header";
 import { SiteFooter } from "@/components/home/sections/site-footer";
 import { useSession } from "@/hooks/useSession";
-import { createStripeCheckoutSessionApi } from "@/apis/billing.api";
+import { confirmStripeCheckoutSessionApi, createStripeCheckoutSessionApi } from "@/apis/billing.api";
 
-export default function PricingPage() {
+function PricingPageContent() {
   const router = useRouter();
-  const { user, loading } = useSession();
+  const searchParams = useSearchParams();
+  const { user, loading, isPro, refetch } = useSession();
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    const sessionId = searchParams.get("session_id");
+
+    if (checkout !== "success" || !sessionId) return;
+
+    (async () => {
+      setConfirming(true);
+      try {
+        await confirmStripeCheckoutSessionApi(sessionId);
+        await refetch();
+        setUpgradeSuccess(true);
+      } catch {
+        setConfirmError(
+          "Could not confirm your upgrade automatically. If you completed payment, refresh this page in a moment or contact support."
+        );
+      } finally {
+        setConfirming(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleUpgrade = async () => {
+    if (loading) return;
+
     if (!user) {
       router.push("/signup");
       return;
@@ -54,6 +83,22 @@ export default function PricingPage() {
           <p className="font-body-lg text-on-surface-variant max-w-2xl mx-auto mb-12">
             Choose the perfect plan to build a standout resume, get AI-driven insights, and land your dream job faster. No hidden fees.
           </p>
+
+          {confirming && (
+            <div className="max-w-md mx-auto mb-8 p-3 bg-primary/5 border border-primary/10 text-on-surface text-sm rounded-xl">
+              Confirming your upgrade...
+            </div>
+          )}
+          {upgradeSuccess && (
+            <div className="max-w-md mx-auto mb-8 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl">
+              You&apos;re on Pro now. Enjoy unlimited AI assistance and up to 5 resumes.
+            </div>
+          )}
+          {confirmError && (
+            <div className="max-w-md mx-auto mb-8 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
+              {confirmError}
+            </div>
+          )}
         </section>
 
         {/* Pricing Cards */}
@@ -115,10 +160,10 @@ export default function PricingPage() {
                   <button
                     type="button"
                     onClick={handleUpgrade}
-                    disabled={checkingOut || user?.plan === "pro"}
+                    disabled={loading || checkingOut || isPro}
                     className="w-full text-center bg-primary-container text-white font-title-md py-3 rounded-full hover:bg-primary transition-colors disabled:opacity-50"
                   >
-                    {checkingOut ? "Redirecting..." : user?.plan === "pro" ? "Current Plan" : "Start Free Trial"}
+                    {checkingOut ? "Redirecting..." : isPro ? "Current Plan" : "Start Free Trial"}
                   </button>
                   {checkoutError && <p className="text-sm text-red-600 mt-2">{checkoutError}</p>}
                 </div>
@@ -188,5 +233,13 @@ export default function PricingPage() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={null}>
+      <PricingPageContent />
+    </Suspense>
   );
 }

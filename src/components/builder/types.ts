@@ -3,12 +3,16 @@ import type {
   IPersonalInfo,
   IProjects,
   IWorkExperience,
+  ResumeColorTheme,
   ResumeTemplate,
+  ResumeTypographyTheme,
 } from "@/types/resume.types";
 
 export interface ResumeDraft {
   title: string;
   template: ResumeTemplate;
+  colorTheme: ResumeColorTheme;
+  typographyTheme: ResumeTypographyTheme;
   summary: string;
   personalInfo: IPersonalInfo;
   education: IEducation[];
@@ -31,6 +35,8 @@ export const emptyPersonalInfo: IPersonalInfo = {
 export const emptyDraft: ResumeDraft = {
   title: "",
   template: "classic",
+  colorTheme: "default",
+  typographyTheme: "modern",
   summary: "",
   personalInfo: emptyPersonalInfo,
   education: [],

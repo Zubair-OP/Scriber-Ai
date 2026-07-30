@@ -1,39 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { rectSortingStrategy } from "@dnd-kit/sortable";
 import { generateSkillsApi } from "@/apis/ai.api";
 import { AIActionButton } from "@/components/builder/AIActionButton";
 import { TextField } from "@/components/builder/fields";
+import { SortableList, type DragHandleProps } from "@/components/builder/SortableList";
 import type { StepProps } from "@/components/builder/types";
 
-function TagList({ items, onRemove }: { items: string[]; onRemove: (index: number) => void }) {
+interface SkillTag {
+  value: string;
+  _dndId: string;
+}
+
+function TagList({
+  items,
+  onRemove,
+  onReorder,
+}: {
+  items: SkillTag[];
+  onRemove: (id: string) => void;
+  onReorder: (next: SkillTag[]) => void;
+}) {
   if (items.length === 0) {
     return <p className="font-body-md text-on-surface-variant">No skills added yet.</p>;
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((item, index) => (
-        <span
-          key={`${item}-${index}`}
-          className="inline-flex items-center gap-1.5 bg-primary/8 text-primary font-label-sm px-3 py-1.5 rounded-full border border-primary/15"
-        >
-          {item}
-          <button
-            type="button"
-            onClick={() => onRemove(index)}
-            aria-label={`Remove ${item}`}
-            className="hover:text-red-600"
-          >
-            <span className="material-symbols-outlined text-[14px]">close</span>
-          </button>
-        </span>
-      ))}
-    </div>
+    <SortableList
+      items={items}
+      onReorder={onReorder}
+      strategy={rectSortingStrategy}
+      modifiers={[]}
+      className="flex flex-wrap gap-2"
+      renderItem={(item, _index, drag) => <SkillChip tag={item} drag={drag} onRemove={() => onRemove(item._dndId)} />}
+    />
+  );
+}
+
+function SkillChip({ tag, drag, onRemove }: { tag: SkillTag; drag: DragHandleProps; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 bg-primary/8 text-primary font-label-sm pl-1 pr-3 py-1.5 rounded-full border border-primary/15">
+      <button
+        type="button"
+        {...drag.attributes}
+        {...drag.listeners}
+        className="cursor-grab active:cursor-grabbing text-primary/50 hover:text-primary touch-none"
+        aria-label="Drag to reorder"
+      >
+        <span className="material-symbols-outlined text-[16px]">drag_indicator</span>
+      </button>
+      {tag.value}
+      <button type="button" onClick={onRemove} aria-label={`Remove ${tag.value}`} className="hover:text-red-600">
+        <span className="material-symbols-outlined text-[14px]">close</span>
+      </button>
+    </span>
   );
 }
 
 export function SkillsStep({ draft, updateDraft }: StepProps) {
+  // Derived (not backfilled) so identical skills always resolve to the same
+  // stable id within a single snapshot of draft.skills — a per-render `.map`
+  // into fresh {value} objects would otherwise never converge, since each
+  // render would see "new" objects lacking an id and loop forever.
+  const tags: SkillTag[] = useMemo(
+    () => draft.skills.map((value, index) => ({ value, _dndId: `${index}-${value}` })),
+    [draft.skills]
+  );
+
   const [newSkill, setNewSkill] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("Mid-Level");
@@ -45,8 +79,8 @@ export function SkillsStep({ draft, updateDraft }: StepProps) {
     setNewSkill("");
   };
 
-  const removeSkill = (index: number) => {
-    updateDraft({ skills: draft.skills.filter((_, i) => i !== index) });
+  const removeSkill = (id: string) => {
+    updateDraft({ skills: tags.filter((t) => t._dndId !== id).map((t) => t.value) });
   };
 
   const handleGenerate = async () => {
@@ -117,7 +151,11 @@ export function SkillsStep({ draft, updateDraft }: StepProps) {
             Add
           </button>
         </div>
-        <TagList items={draft.skills} onRemove={removeSkill} />
+        <TagList
+          items={tags}
+          onRemove={removeSkill}
+          onReorder={(next) => updateDraft({ skills: next.map((t) => t.value) })}
+        />
       </div>
     </div>
   );

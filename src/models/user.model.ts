@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema<NewDocument>({
     },
     plan: {
         type: String,
-        enum: ["free", "pro"],
+        enum: ["free", "pro", "enterprise"],
         default: "free",
     },
     currentPeriodEnd: {

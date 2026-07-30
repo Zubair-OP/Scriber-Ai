@@ -3,7 +3,11 @@ import { handleApiError } from "@/lib/api-error";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
 import { ApiResponse } from "@/types/api.types";
-import { RESUME_TEMPLATES } from "@/types/resume.types";
+import {
+  sanitizeColorThemeInput,
+  sanitizeTemplateInput,
+  sanitizeTypographyThemeInput,
+} from "@/lib/resume-validation";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 
@@ -17,31 +21,83 @@ const allowedPersonalInfoKeys = [
   "portfolio",
 ];
 
+function pickStringFields<T extends Record<string, unknown>>(
+  source: T,
+  keys: (keyof T)[]
+): Record<string, string> {
+  return keys.reduce<Record<string, string>>((acc, key) => {
+    const value = source[key];
+    if (typeof value === "string") acc[key as string] = value;
+    return acc;
+  }, {});
+}
+
+function sanitizeObjectArray(
+  value: unknown,
+  keys: string[]
+): Record<string, string>[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+    .map((item) => pickStringFields(item, keys));
+}
+
+function sanitizeProjectsArray(value: unknown): Record<string, unknown>[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+    .map((item) => ({
+      ...pickStringFields(item, ["title", "description", "githubUrl", "liveUrl"]),
+      techStack: Array.isArray(item.techStack)
+        ? item.techStack.filter((tech): tech is string => typeof tech === "string")
+        : [],
+    }));
+}
+
+function sanitizeStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 const sanitizeResumeUpdate = (body: Record<string, unknown>) => {
   const update: Record<string, unknown> = {};
 
   if (typeof body.title === "string") update.title = body.title;
   if (typeof body.summary === "string") update.summary = body.summary;
-  if (typeof body.template === "string" && RESUME_TEMPLATES.includes(body.template as (typeof RESUME_TEMPLATES)[number])) {
-    update.template = body.template;
-  }
+  const template = sanitizeTemplateInput(body.template);
+  if (template) update.template = template;
+  const colorTheme = sanitizeColorThemeInput(body.colorTheme);
+  if (colorTheme) update.colorTheme = colorTheme;
+  const typographyTheme = sanitizeTypographyThemeInput(body.typographyTheme);
+  if (typographyTheme) update.typographyTheme = typographyTheme;
 
   if (body.personalInfo && typeof body.personalInfo === "object" && !Array.isArray(body.personalInfo)) {
-    const personalInfo = body.personalInfo as Record<string, unknown>;
-    update.personalInfo = allowedPersonalInfoKeys.reduce<Record<string, string>>((acc, key) => {
-      const value = personalInfo[key];
-      if (typeof value === "string") {
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
+    update.personalInfo = pickStringFields(
+      body.personalInfo as Record<string, unknown>,
+      allowedPersonalInfoKeys
+    );
   }
 
-  if (Array.isArray(body.education)) update.education = body.education;
-  if (Array.isArray(body.workExperience)) update.workExperience = body.workExperience;
-  if (Array.isArray(body.projects)) update.projects = body.projects;
-  if (Array.isArray(body.skills)) update.skills = body.skills;
-  if (Array.isArray(body.certifications)) update.certifications = body.certifications;
+  const education = sanitizeObjectArray(body.education, ["institute", "degree", "startDate", "endDate"]);
+  if (education) update.education = education;
+
+  const workExperience = sanitizeObjectArray(body.workExperience, [
+    "company",
+    "position",
+    "startDate",
+    "endDate",
+    "description",
+  ]);
+  if (workExperience) update.workExperience = workExperience;
+
+  const projects = sanitizeProjectsArray(body.projects);
+  if (projects) update.projects = projects;
+
+  const skills = sanitizeStringArray(body.skills);
+  if (skills) update.skills = skills;
+
+  const certifications = sanitizeStringArray(body.certifications);
+  if (certifications) update.certifications = certifications;
 
   return update;
 };
