@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { IResume } from "@/types/resume.types";
 import mongoose from "mongoose";
 
@@ -85,6 +86,15 @@ const resumeSchema = new mongoose.Schema<IResume>(
     certifications: {
       type: [String],
       default: [],
+    },
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+    shareId: {
+      type: String,
+      default: () => randomUUID(),
+      unique: true,
     },
   },
   {

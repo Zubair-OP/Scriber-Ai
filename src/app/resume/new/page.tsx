@@ -37,7 +37,12 @@ function NewResumeRedirect() {
     })();
   }, [loading, user, template, router]);
 
-  return <p className="font-body-md text-on-surface-variant">Setting up your resume...</p>;
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <span className="material-symbols-outlined text-[28px] text-primary-container animate-spin">progress_activity</span>
+      <p className="font-body-md text-on-surface-variant">Setting up your resume...</p>
+    </div>
+  );
 }
 
 export default function NewResumePage() {
@@ -45,7 +50,13 @@ export default function NewResumePage() {
     <div className="min-h-screen flex flex-col bg-background text-on-surface">
       <SiteHeader />
       <main className="flex-grow flex items-center justify-center pt-32">
-        <Suspense fallback={<p className="font-body-md text-on-surface-variant">Loading...</p>}>
+        <Suspense
+          fallback={
+            <span className="material-symbols-outlined text-[28px] text-primary-container animate-spin">
+              progress_activity
+            </span>
+          }
+        >
           <NewResumeRedirect />
         </Suspense>
       </main>

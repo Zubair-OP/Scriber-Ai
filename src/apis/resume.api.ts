@@ -41,6 +41,12 @@ export const generateFinalResumeApi = async (resumeId: string) => {
   return response.data;
 };
 
+export const toggleResumeShareApi = async (resumeId: string, isPublic: boolean) => {
+  const response = await axios.patch(`/api/resume/${resumeId}/share`, { isPublic });
+
+  return response.data;
+};
+
 export const downloadResumePdfApi = async (resumeId: string) => {
   const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
     responseType: "blob",

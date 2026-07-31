@@ -1,6 +1,12 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "@/hooks/useSession";
 
 export function HeroSection() {
+  const { user } = useSession();
+
   return (
     <section className="relative overflow-hidden pt-20 pb-12 md:pt-24 md:pb-16 lg:pt-28 lg:pb-20 bg-surface">
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -16,7 +22,7 @@ export function HeroSection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Link
-              href="/signup"
+              href={user ? "/dashboard" : "/signup"}
               className="bg-primary-container text-white px-5 py-3 rounded-full font-title-md flex items-center justify-center gap-2 hover:bg-primary active:scale-[0.98] transition-all group text-sm md:text-base"
             >
               <span>Build My Resume</span>
@@ -35,26 +41,21 @@ export function HeroSection() {
           </div>
           <div className="mt-5 md:mt-6 flex items-center gap-3 text-on-surface-variant">
             <div className="flex -space-x-2">
-              <img
-                src="https://randomuser.me/api/portraits/women/44.jpg"
-                alt="User avatar"
-                className="w-8 h-8 rounded-full border-2 border-white object-cover"
-              />
-              <img
-                src="https://randomuser.me/api/portraits/men/32.jpg"
-                alt="User avatar"
-                className="w-8 h-8 rounded-full border-2 border-white object-cover"
-              />
-              <img
-                src="https://randomuser.me/api/portraits/women/68.jpg"
-                alt="User avatar"
-                className="w-8 h-8 rounded-full border-2 border-white object-cover"
-              />
-              <img
-                src="https://randomuser.me/api/portraits/men/75.jpg"
-                alt="User avatar"
-                className="w-8 h-8 rounded-full border-2 border-white object-cover"
-              />
+              {[
+                "https://randomuser.me/api/portraits/women/44.jpg",
+                "https://randomuser.me/api/portraits/men/32.jpg",
+                "https://randomuser.me/api/portraits/women/68.jpg",
+                "https://randomuser.me/api/portraits/men/75.jpg",
+              ].map((src) => (
+                <Image
+                  key={src}
+                  src={src}
+                  alt="User avatar"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                />
+              ))}
             </div>
             <span className="font-label-lg text-on-surface-variant">Joined by 500+ job seekers today</span>
           </div>
@@ -83,9 +84,10 @@ export function HeroSection() {
               </div>
               
               {/* Image content inside browser */}
-              <div className="p-1 bg-surface-container-lowest">
-                <img
-                  className="w-full h-auto rounded-b-xl border-t border-surface-variant/50 object-cover"
+              <div className="relative w-full aspect-[16/10] bg-surface-container-lowest">
+                <Image
+                  fill
+                  className="rounded-b-xl border-t border-surface-variant/50 object-cover"
                   alt="Scriber Builder Resume Mockup"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCdRlCC2OzBruaSy73dDUIwSZ5IoLcfToVG4xnXWW2wMBcLoepPYUL6i5gv7xmlVPl_lpmLk2BVIDZoVYwdufvMEShxbDZdg302VNobAterCYgNK8dllGsk1w-Ul7859vL4-gk9W9z4-cOAtwIr_V_gKv_7HCvUFgnQAsdGSwG2VKGke8MktnwyElWtJEMvElVUijUu4_49kjgJtdh6A6tKNuInKvhEN7DQnbL0COyxXQ1j3qHuAGZFsSdk5PK4vn2p6Qqtpz4EFnK"
                 />

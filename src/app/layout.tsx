@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
+import { Geist } from "next/font/google";
+import { SessionProvider } from "@/hooks/useSession";
 import "./globals.css";
+
+const geist = Geist({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-geist",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Scriber AI | Build a Resume That Lands Your Dream Job in 15 Minutes",
@@ -46,16 +55,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-        <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background text-on-surface font-sans antialiased min-h-screen flex flex-col" suppressHydrationWarning>
-        {children}
+      <body
+        className={`${geist.variable} bg-background text-on-surface font-sans antialiased min-h-screen flex flex-col`}
+        suppressHydrationWarning
+      >
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

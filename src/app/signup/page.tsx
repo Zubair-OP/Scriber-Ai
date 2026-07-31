@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerApi } from "@/apis/auth.api";
@@ -31,7 +32,7 @@ function SignupForm() {
 
     try {
       await registerApi({ name, email, password });
-      router.push(template ? `/resume/new?template=${template}` : "/dashboard");
+      router.push(template ? `/resume/new?template=${template}` : "/dashboard?welcome=1");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };
@@ -194,9 +195,11 @@ function SignupForm() {
               &quot;Scriber Builder transformed how I present my experience. The templates are spotless.&quot;
             </h3>
             <div className="flex items-center gap-3">
-              <img
+              <Image
                 src="https://randomuser.me/api/portraits/men/32.jpg"
                 alt="Michael R."
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div>

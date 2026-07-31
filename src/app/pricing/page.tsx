@@ -170,6 +170,10 @@ function PricingPageContent() {
                 <ul className="space-y-4 flex-grow font-body-md text-on-surface">
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>
+                    <span className="font-bold">Create up to 5 Resumes</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>
                     <span className="font-bold">AI Resume Suggestions</span>
                   </li>
                   <li className="flex items-start gap-3">

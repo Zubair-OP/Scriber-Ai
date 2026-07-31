@@ -80,6 +80,8 @@ export interface IResume {
     skills: string[];
     education: IEducation[];
     certifications?: string[];
+    isPublic?: boolean;
+    shareId?: string;
     createdAt?: Date
     updatedAt?: Date
 }

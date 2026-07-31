@@ -2,15 +2,24 @@
 
 import { useMemo, useState } from "react";
 import { getATSScoreApi } from "@/apis/ai.api";
-import { downloadResumePdfApi, generateFinalResumeApi } from "@/apis/resume.api";
+import { downloadResumePdfApi, generateFinalResumeApi, toggleResumeShareApi } from "@/apis/resume.api";
 import { AIActionButton } from "@/components/builder/AIActionButton";
 import { DesignControls } from "@/components/builder/DesignControls";
 import { TEMPLATE_COMPONENTS, TEMPLATE_LABELS } from "@/components/builder/templates";
 import type { StepProps } from "@/components/builder/types";
+import { HealthRing } from "@/components/dashboard/HealthRing";
+import { computeResumeHealth } from "@/lib/resume-health";
 import { RESUME_TEMPLATES } from "@/types/resume.types";
+
+interface ShareState {
+  isPublic: boolean;
+  shareId?: string;
+}
 
 interface ReviewStepProps extends StepProps {
   resumeId: string;
+  shareState: ShareState;
+  onShareStateChange: (next: ShareState) => void;
 }
 
 function draftToPlainText(draft: StepProps["draft"]): string {
@@ -38,13 +47,40 @@ interface AtsResult {
   recommendations?: string[];
 }
 
-export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
+export function ReviewStep({ draft, updateDraft, resumeId, shareState, onShareStateChange }: ReviewStepProps) {
   const [atsResult, setAtsResult] = useState<AtsResult | null>(null);
   const [polishNotice, setPolishNotice] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl = shareState.shareId
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/resume/share/${shareState.shareId}`
+    : "";
+
+  const handleToggleShare = async () => {
+    setSharing(true);
+    try {
+      const response = await toggleResumeShareApi(resumeId, !shareState.isPublic);
+      onShareStateChange({
+        isPublic: Boolean(response?.data?.isPublic),
+        shareId: response?.data?.shareId,
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const resumeText = useMemo(() => draftToPlainText(draft), [draft]);
+  const health = useMemo(() => computeResumeHealth(draft), [draft]);
 
   const handleCheckAtsScore = async () => {
     const response = await getATSScoreApi({ resumeText });
@@ -131,6 +167,81 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
         </div>
       </div>
 
+      <div className="p-5 rounded-2xl border border-surface-variant bg-surface-subtle/40 space-y-3">
+        <div className="flex items-center gap-3">
+          <HealthRing score={health.score} size={44} />
+          <div>
+            <p className="font-label-lg text-on-surface">Resume completeness</p>
+            <p className="font-body-sm text-on-surface-variant">A free, instant check of how filled-out your resume is.</p>
+          </div>
+        </div>
+        <ul className="space-y-1.5">
+          {health.sections
+            .filter((section) => section.status !== "complete")
+            .map((section) => (
+              <li key={section.key} className="flex items-start gap-2 text-sm text-on-surface-variant">
+                <span
+                  className={`material-symbols-outlined text-[16px] mt-0.5 ${
+                    section.status === "missing" ? "text-red-500" : "text-amber-500"
+                  }`}
+                >
+                  {section.status === "missing" ? "error" : "info"}
+                </span>
+                <span>
+                  <span className="font-medium text-on-surface">{section.label}:</span> {section.message}
+                </span>
+              </li>
+            ))}
+          {health.sections.every((section) => section.status === "complete") && (
+            <li className="flex items-center gap-2 text-sm text-emerald-700">
+              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+              Every section is filled out.
+            </li>
+          )}
+        </ul>
+      </div>
+
+      <div className="p-5 rounded-2xl border border-surface-variant bg-surface-subtle/40 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p className="font-label-lg text-on-surface">Share this resume</p>
+            <p className="font-body-sm text-on-surface-variant">
+              {shareState.isPublic
+                ? "Anyone with the link can view a read-only copy of this resume."
+                : "Turn this on to get a public link anyone can view without signing in."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleToggleShare}
+            disabled={sharing}
+            className={`px-4 py-2 rounded-full font-label-sm transition-colors disabled:opacity-50 ${
+              shareState.isPublic
+                ? "bg-primary-container text-white hover:bg-primary"
+                : "border border-surface-variant text-on-surface-variant hover:bg-surface-subtle"
+            }`}
+          >
+            {sharing ? "Updating..." : shareState.isPublic ? "Public" : "Make public"}
+          </button>
+        </div>
+        {shareState.isPublic && shareUrl && (
+          <div className="flex items-center gap-2">
+            <input
+              readOnly
+              value={shareUrl}
+              className="flex-1 px-3 py-2 rounded-xl border border-surface-variant bg-white text-sm text-on-surface-variant"
+            />
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="px-3 py-2 rounded-xl border border-surface-variant font-label-sm hover:bg-surface-subtle transition-colors"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="lg:hidden">
         <p className="font-label-lg text-on-surface mb-3">Color &amp; typography</p>
         <DesignControls
@@ -169,11 +280,31 @@ export function ReviewStep({ draft, updateDraft, resumeId }: ReviewStepProps) {
             <span className="font-body-md text-on-surface-variant">ATS Score</span>
           </div>
           {atsResult.summary && <p className="font-body-md text-on-surface">{atsResult.summary}</p>}
+          {atsResult.strengths && atsResult.strengths.length > 0 && (
+            <div>
+              <p className="font-label-lg text-on-surface mb-1">Strengths</p>
+              <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-0.5">
+                {atsResult.strengths.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {atsResult.improvements && atsResult.improvements.length > 0 && (
             <div>
               <p className="font-label-lg text-on-surface mb-1">Areas for improvement</p>
               <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-0.5">
                 {atsResult.improvements.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {atsResult.recommendations && atsResult.recommendations.length > 0 && (
+            <div>
+              <p className="font-label-lg text-on-surface mb-1">Recommendations</p>
+              <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-0.5">
+                {atsResult.recommendations.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>

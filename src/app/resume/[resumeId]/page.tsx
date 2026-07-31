@@ -11,6 +11,7 @@ import { emptyDraft, type ResumeDraft } from "@/components/builder/types";
 import { resumeToDraft } from "@/lib/resume-draft";
 import { TEMPLATE_COMPONENTS } from "@/components/builder/templates";
 import { FullscreenPreviewModal } from "@/components/builder/FullscreenPreviewModal";
+import { BuilderSkeleton } from "@/components/ui/Skeleton";
 import { DesignControls } from "@/components/builder/DesignControls";
 import { PersonalInfoStep } from "@/components/builder/steps/PersonalInfoStep";
 import { SummaryStep } from "@/components/builder/steps/SummaryStep";
@@ -45,6 +46,7 @@ export default function ResumeBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [shareState, setShareState] = useState<{ isPublic: boolean; shareId?: string }>({ isPublic: false });
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -60,6 +62,10 @@ export default function ResumeBuilderPage() {
       try {
         const response = await getResumeByIdApi(resumeId);
         setDraft(resumeToDraft(response?.data || {}));
+        setShareState({
+          isPublic: Boolean(response?.data?.isPublic),
+          shareId: response?.data?.shareId,
+        });
       } catch {
         setNotFound(true);
       } finally {
@@ -98,8 +104,8 @@ export default function ResumeBuilderPage() {
     return (
       <div className="min-h-screen flex flex-col bg-background text-on-surface">
         <SiteHeader />
-        <main className="flex-grow flex items-center justify-center pt-32">
-          <p className="font-body-md text-on-surface-variant">Loading...</p>
+        <main className="flex-grow pb-24">
+          <BuilderSkeleton />
         </main>
       </div>
     );
@@ -172,7 +178,14 @@ export default function ResumeBuilderPage() {
                   {stepIndex === 4 && <ProjectsStep {...stepProps} />}
                   {stepIndex === 5 && <SkillsStep {...stepProps} />}
                   {stepIndex === 6 && <CertificationsStep {...stepProps} />}
-                  {stepIndex === 7 && <ReviewStep {...stepProps} resumeId={resumeId} />}
+                  {stepIndex === 7 && (
+                    <ReviewStep
+                      {...stepProps}
+                      resumeId={resumeId}
+                      shareState={shareState}
+                      onShareStateChange={setShareState}
+                    />
+                  )}
                 </motion.div>
               </AnimatePresence>
 

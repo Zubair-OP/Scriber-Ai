@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { RevealSection } from "../ui";
 
 const PORTFOLIO_ITEMS = [
@@ -52,11 +53,14 @@ export function PortfolioSection() {
               {PORTFOLIO_ITEMS.map((item) => (
                 <div key={item.title} className="rounded-4xl border border-slate-900/8 bg-slate-50 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
                   <div className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Portfolio ready</div>
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="mt-6 h-24 w-full rounded-3xl object-cover"
-                  />
+                  <div className="relative mt-6 h-24 w-full">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="rounded-3xl object-cover"
+                    />
+                  </div>
                   <div className="mt-5 text-lg font-semibold text-slate-950">{item.title}</div>
                   <div className="mt-2 text-sm leading-6 text-slate-600">{item.description}</div>
                 </div>

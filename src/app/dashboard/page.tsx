@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { SiteHeader } from "@/components/home/sections/site-header";
 import { SiteFooter } from "@/components/home/sections/site-footer";
+import { ResumeCard } from "@/components/dashboard/ResumeCard";
+import { DashboardSkeleton } from "@/components/ui/Skeleton";
 import { useSession } from "@/hooks/useSession";
 import {
   createResumeApi,
@@ -14,17 +17,11 @@ import {
 import type { IResume } from "@/types/resume.types";
 import { getResumeLimit } from "@/lib/plan-limits";
 
-function formatDate(value?: string | Date) {
-  if (!value) return "Draft";
-  return new Date(value).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+type SortOption = "updated" | "title";
 
-export default function DashboardPage() {
+function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: sessionLoading } = useSession();
 
   const [resumes, setResumes] = useState<IResume[]>([]);
@@ -32,12 +29,21 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("updated");
+  const [showWelcome, setShowWelcome] = useState(() => searchParams.get("welcome") === "1");
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!sessionLoading && !user) {
       router.push("/login");
     }
   }, [sessionLoading, user, router]);
+
+  const dismissWelcome = () => {
+    setShowWelcome(false);
+    router.replace("/dashboard");
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +62,27 @@ export default function DashboardPage() {
 
   const resumeLimit = getResumeLimit(user?.plan);
   const atResumeLimit = Number.isFinite(resumeLimit) && resumes.length >= resumeLimit;
+
+  const visibleResumes = useMemo(() => {
+    const filtered = query.trim()
+      ? resumes.filter((resume) => {
+          const label = `${resume.title || ""} ${resume.personalInfo?.fullname || ""}`.toLowerCase();
+          return label.includes(query.trim().toLowerCase());
+        })
+      : resumes;
+
+    const sorted = [...filtered];
+    if (sortBy === "title") {
+      sorted.sort((a, b) =>
+        (a.title || a.personalInfo?.fullname || "Untitled Resume").localeCompare(
+          b.title || b.personalInfo?.fullname || "Untitled Resume"
+        )
+      );
+    } else {
+      sorted.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+    }
+    return sorted;
+  }, [resumes, query, sortBy]);
 
   const handleCreate = async () => {
     setError("");
@@ -135,8 +162,54 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {showWelcome && (
+            <div className="mt-6 p-6 bg-primary/5 border border-primary/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="font-headline-sm text-on-surface mb-1">Welcome to Scriber AI</p>
+                <p className="font-body-md text-on-surface-variant">
+                  Ready when you are — browse a template for inspiration, or start with a blank resume.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link
+                  href="/templates"
+                  onClick={dismissWelcome}
+                  className="inline-flex items-center justify-center border border-surface-variant text-on-surface font-label-lg px-5 py-2.5 rounded-full hover:bg-surface-subtle transition-colors whitespace-nowrap"
+                >
+                  Browse templates
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    dismissWelcome();
+                    handleCreate();
+                  }}
+                  className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
+                >
+                  Start from scratch
+                </button>
+              </div>
+            </div>
+          )}
+
+          {Number.isFinite(resumeLimit) && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="font-label-sm text-on-surface-variant">
+                  {resumes.length} of {resumeLimit} resumes used
+                </p>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface-variant/40 overflow-hidden">
+                <div
+                  className="h-full bg-primary-container transition-all"
+                  style={{ width: `${Math.min(100, (resumes.length / resumeLimit) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {atResumeLimit && (
-            <div className="mt-6 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <p className="font-body-md text-on-surface">
                 {user.plan === "pro"
                   ? "Pro plan is limited to 5 resumes. Contact sales about Enterprise for unlimited resumes."
@@ -163,7 +236,7 @@ export default function DashboardPage() {
 
         <section className="px-4 md:px-10 max-w-[1200px] mx-auto pb-24">
           {loadingResumes ? (
-            <p className="font-body-md text-on-surface-variant">Loading your resumes...</p>
+            <DashboardSkeleton />
           ) : resumes.length === 0 ? (
             <div className="rounded-[1.25rem] border border-dashed border-surface-variant p-16 text-center">
               <p className="font-headline-md text-on-surface mb-2">No resumes yet</p>
@@ -180,54 +253,59 @@ export default function DashboardPage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resumes.map((resume) => (
-                <div
-                  key={resume._id}
-                  className="p-1.5 bg-white/50 backdrop-blur-sm rounded-[1.5rem] border border-surface-variant/40"
-                >
-                  <div className="bg-white rounded-[1.25rem] p-6 border border-surface-variant/20 flex flex-col h-full">
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="material-symbols-outlined text-primary-container text-[28px]">
-                        description
-                      </span>
-                      <span className="font-label-sm text-on-surface-variant capitalize px-2 py-1 rounded-full bg-surface-variant/40">
-                        {resume.template || "classic"}
-                      </span>
-                    </div>
-                    <h3 className="font-headline-md text-on-surface mb-1 truncate">
-                      {resume.title || resume.personalInfo?.fullname || "Untitled Resume"}
-                    </h3>
-                    <p className="font-label-sm text-on-surface-variant mb-6">
-                      Updated {formatDate(resume.updatedAt)}
-                    </p>
-
-                    <div className="mt-auto flex items-center gap-2">
-                      <Link
-                        href={`/resume/${resume._id}`}
-                        className="flex-1 text-center bg-primary-container text-white font-label-lg py-2.5 rounded-full hover:bg-primary transition-colors"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => resume._id && handleDelete(resume._id)}
-                        disabled={deletingId === resume._id}
-                        className="px-3 py-2.5 rounded-full border border-surface-variant text-on-surface-variant hover:text-red-600 hover:border-red-200 transition-colors disabled:opacity-50"
-                        aria-label="Delete resume"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">delete</span>
-                      </button>
-                    </div>
-                  </div>
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                <div className="relative flex-1">
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant absolute left-3.5 top-1/2 -translate-y-1/2">
+                    search
+                  </span>
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search your resumes"
+                    className="w-full pl-10 pr-4 py-2.5 border border-surface-variant rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-container/30"
+                  />
                 </div>
-              ))}
-            </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-4 py-2.5 border border-surface-variant rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-container/30"
+                >
+                  <option value="updated">Recently updated</option>
+                  <option value="title">Title A–Z</option>
+                </select>
+              </div>
+
+              {visibleResumes.length === 0 ? (
+                <p className="font-body-md text-on-surface-variant">No resumes match your search.</p>
+              ) : (
+                <motion.div layout={!reduceMotion} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AnimatePresence>
+                    {visibleResumes.map((resume) => (
+                      <ResumeCard
+                        key={resume._id}
+                        resume={resume}
+                        onDelete={handleDelete}
+                        deleting={deletingId === resume._id}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </>
           )}
         </section>
       </main>
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function DashboardPageWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPage />
+    </Suspense>
   );
 }

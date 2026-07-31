@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useSession } from "@/hooks/useSession";
 
 export function CtaSection() {
+  const { user } = useSession();
+
   return (
     <section className="py-24 md:py-32 px-4 md:px-10">
       <div className="max-w-[1200px] mx-auto p-1.5 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-teal-500/10 rounded-[2rem] border border-emerald-500/20">
@@ -16,7 +21,7 @@ export function CtaSection() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href="/signup"
+                href={user ? "/dashboard" : "/signup"}
                 className="bg-white text-emerald-800 px-8 py-3.5 rounded-full font-title-lg hover:bg-slate-50 hover:shadow-xl active:scale-[0.98] transition-all text-center group"
               >
                 <span className="flex items-center justify-center gap-2">

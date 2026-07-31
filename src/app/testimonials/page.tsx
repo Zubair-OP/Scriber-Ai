@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { SiteHeader } from "@/components/home/sections/site-header";
 import { SiteFooter } from "@/components/home/sections/site-footer";
 
@@ -92,9 +93,11 @@ export default function TestimonialsPage() {
               </div>
 
               <div className="flex items-center gap-4 border-t border-surface-variant/50 pt-4">
-                <img
+                <Image
                   src={item.avatar}
                   alt={item.name}
+                  width={48}
+                  height={48}
                   className="w-12 h-12 rounded-full object-cover"
                 />
                 <div>

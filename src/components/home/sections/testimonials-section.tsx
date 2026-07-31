@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function TestimonialsSection() {
   return (
     <section className="py-24 bg-surface-container-low overflow-hidden relative">
@@ -19,9 +21,11 @@ export function TestimonialsSection() {
             &quot;I spent months applying with my old resume with no luck. After using Scriber Builder, I landed three interviews in the first week. The AI suggestions were a total game-changer for my bullet points.&quot;
           </blockquote>
           <div className="flex items-center justify-center gap-4">
-            <img
+            <Image
               src="https://randomuser.me/api/portraits/women/44.jpg"
               alt="Sarah Jenkins"
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full border-2 border-white shadow-md object-cover"
             />
             <div className="text-left">

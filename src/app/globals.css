@@ -81,8 +81,8 @@
   --color-outline: var(--outline);
   --color-outline-variant: var(--outline-variant);
 
-  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
-  --font-display: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-geist), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-geist), system-ui, -apple-system, sans-serif;
 
   --width-container-max: 1200px;
   --spacing-margin-desktop: 40px;
@@ -97,7 +97,7 @@ html {
 body {
   background-color: var(--background);
   color: var(--on-surface);
-  font-family: 'Geist', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-geist), system-ui, -apple-system, sans-serif;
 }
 
 /* The PDF export route renders only #resume-print-area with nothing else on
