@@ -3,7 +3,7 @@ import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
-import UserModel from "@/models/user.model";
+import UserModel from "@/models/User.model";
 import { StripeCheckoutBody } from "@/types/user.types";
 import { stripe } from "@/lib/stripe";
 

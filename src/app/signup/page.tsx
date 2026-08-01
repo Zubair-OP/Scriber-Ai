@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerApi } from "@/apis/auth.api";
 import { LogoIcon } from "@/components/home/ui";
+import { useSession } from "@/hooks/useSession";
 import { sanitizeTemplateInput } from "@/lib/resume-validation";
 
 function SignupForm() {
@@ -13,6 +14,7 @@ function SignupForm() {
   const searchParams = useSearchParams();
   const template = sanitizeTemplateInput(searchParams.get("template"));
   const loginHref = template ? `/login?template=${template}` : "/login";
+  const { user, loading: sessionLoading, refetch } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,6 +22,12 @@ function SignupForm() {
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!sessionLoading && user) {
+      router.replace(template ? `/resume/new?template=${template}` : "/");
+    }
+  }, [sessionLoading, user, router, template]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +40,8 @@ function SignupForm() {
 
     try {
       await registerApi({ name, email, password });
-      router.push(template ? `/resume/new?template=${template}` : "/dashboard?welcome=1");
+      await refetch();
+      router.push(template ? `/resume/new?template=${template}` : "/");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };

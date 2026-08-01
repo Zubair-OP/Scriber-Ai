@@ -8,6 +8,7 @@ const resumeSchema = new mongoose.Schema<IResume>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     title: {
       type: String,

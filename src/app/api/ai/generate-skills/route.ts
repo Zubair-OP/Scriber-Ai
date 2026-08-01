@@ -2,8 +2,9 @@ import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { requireProPlan } from "@/lib/plan";
 import { handleApiError } from "@/lib/api-error";
+import { parseAiJson } from "@/lib/ai-json";
+import { parseJsonBody, validateNonEmptyString } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
-import { GenerateSkillsBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,24 +15,10 @@ export async function POST(req: NextRequest) {
         const userId = await getCurrentUser();
         await requireProPlan(userId);
 
-        const body: GenerateSkillsBody = await req.json();
+        const body = await parseJsonBody(req);
 
-        const { experienceLevel, jobTitle } = body;
-
-        if (!experienceLevel || !jobTitle)
-            return NextResponse.json<ApiResponse>({
-                success: false, message: "Missing fields"
-            }, { status: 400 });
-
-        if (jobTitle.length > 120 || experienceLevel.length > 40) {
-            return NextResponse.json<ApiResponse>(
-                {
-                    success: false,
-                    message: "Input is too large to process",
-                },
-                { status: 413 }
-            );
-        }
+        const jobTitle = validateNonEmptyString(body.jobTitle, "Job title", 120);
+        const experienceLevel = validateNonEmptyString(body.experienceLevel, "Experience level", 40);
 
         const prompt = `
             You are an ATS optimization specialist.
@@ -91,16 +78,7 @@ export async function POST(req: NextRequest) {
 
         const result = await generateAiContent(prompt);
 
-        let skills = result;
-
-        if (typeof skills === "string") {
-            try {
-                const cleaned = skills.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-                skills = JSON.parse(cleaned);
-            } catch (err) {
-                console.error("Failed to parse skills:", err);
-            }
-        }
+        const skills = parseAiJson(result);
 
         return NextResponse.json<ApiResponse>({
             success: true, message: "Skills created", data: {

@@ -29,7 +29,7 @@ export async function GET(
       );
     }
 
-    const origin = req.nextUrl.origin;
+    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
     browser = await chromium.launch();
     const context = await browser.newContext();

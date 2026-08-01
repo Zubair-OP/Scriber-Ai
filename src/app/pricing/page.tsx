@@ -163,7 +163,7 @@ function PricingPageContent() {
                     disabled={loading || checkingOut || isPro}
                     className="w-full text-center bg-primary-container text-white font-title-md py-3 rounded-full hover:bg-primary transition-colors disabled:opacity-50"
                   >
-                    {checkingOut ? "Redirecting..." : isPro ? "Current Plan" : "Start Free Trial"}
+                    {checkingOut ? "Redirecting..." : isPro ? "Current Plan" : "Get Premium"}
                   </button>
                   {checkoutError && <p className="text-sm text-red-600 mt-2">{checkoutError}</p>}
                 </div>

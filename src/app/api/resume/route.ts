@@ -11,9 +11,12 @@ export async function GET() {
 
     const userId = await getCurrentUser();
 
-    const resumes = await ResumeModel.find({ user_id: userId }).sort({
-      createdAt: -1,
-    });
+    // Cards render a live template preview, so every field is needed; .lean() still avoids
+    // the cost of hydrating full Mongoose documents for a read-only list.
+    const resumes = await ResumeModel.find({ user_id: userId })
+      .select("-__v")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return NextResponse.json<ApiResponse>(
       {

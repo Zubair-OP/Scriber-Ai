@@ -7,9 +7,9 @@ import {
   sanitizeColorThemeInput,
   sanitizeTemplateInput,
   sanitizeTypographyThemeInput,
+  validateObjectId,
 } from "@/lib/resume-validation";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 
 const allowedPersonalInfoKeys = [
   "fullname",
@@ -21,13 +21,21 @@ const allowedPersonalInfoKeys = [
   "portfolio",
 ];
 
+// Defensive caps so a malicious client can't bloat a document with unbounded input.
+const MAX_FIELD_LENGTH = 5000;
+const MAX_ARRAY_ITEMS = 100;
+
+function capString(value: string): string {
+  return value.length > MAX_FIELD_LENGTH ? value.slice(0, MAX_FIELD_LENGTH) : value;
+}
+
 function pickStringFields<T extends Record<string, unknown>>(
   source: T,
   keys: (keyof T)[]
 ): Record<string, string> {
   return keys.reduce<Record<string, string>>((acc, key) => {
     const value = source[key];
-    if (typeof value === "string") acc[key as string] = value;
+    if (typeof value === "string") acc[key as string] = capString(value);
     return acc;
   }, {});
 }
@@ -38,6 +46,7 @@ function sanitizeObjectArray(
 ): Record<string, string>[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value
+    .slice(0, MAX_ARRAY_ITEMS)
     .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
     .map((item) => pickStringFields(item, keys));
 }
@@ -45,25 +54,32 @@ function sanitizeObjectArray(
 function sanitizeProjectsArray(value: unknown): Record<string, unknown>[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value
+    .slice(0, MAX_ARRAY_ITEMS)
     .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
     .map((item) => ({
       ...pickStringFields(item, ["title", "description", "githubUrl", "liveUrl"]),
       techStack: Array.isArray(item.techStack)
-        ? item.techStack.filter((tech): tech is string => typeof tech === "string")
+        ? item.techStack
+            .slice(0, MAX_ARRAY_ITEMS)
+            .filter((tech): tech is string => typeof tech === "string")
+            .map(capString)
         : [],
     }));
 }
 
 function sanitizeStringArray(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
-  return value.filter((item): item is string => typeof item === "string");
+  return value
+    .slice(0, MAX_ARRAY_ITEMS)
+    .filter((item): item is string => typeof item === "string")
+    .map(capString);
 }
 
 const sanitizeResumeUpdate = (body: Record<string, unknown>) => {
   const update: Record<string, unknown> = {};
 
-  if (typeof body.title === "string") update.title = body.title;
-  if (typeof body.summary === "string") update.summary = body.summary;
+  if (typeof body.title === "string") update.title = capString(body.title);
+  if (typeof body.summary === "string") update.summary = capString(body.summary);
   const template = sanitizeTemplateInput(body.template);
   if (template) update.template = template;
   const colorTheme = sanitizeColorThemeInput(body.colorTheme);
@@ -113,15 +129,7 @@ export async function GET(
 
     const { resumeId } = await params;
 
-    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Invalid resume id",
-        },
-        { status: 400 }
-      );
-    }
+    validateObjectId(resumeId);
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
@@ -159,15 +167,17 @@ export async function PATCH(
 
     const userId = await getCurrentUser();
 
-    const body = await req.json();
-
     const { resumeId } = await params;
 
-    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
+    validateObjectId(resumeId);
+
+    const body = await req.json().catch(() => null);
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          message: "Invalid resume id",
+          message: "Invalid request body",
         },
         { status: 400 }
       );
@@ -232,15 +242,7 @@ export async function DELETE(
 
     const { resumeId } = await params;
 
-    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Invalid resume id",
-        },
-        { status: 400 }
-      );
-    }
+    validateObjectId(resumeId);
 
     const deletedResume = await ResumeModel.findOneAndDelete({
       _id: resumeId,

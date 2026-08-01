@@ -63,9 +63,9 @@ const userSchema = new mongoose.Schema<NewDocument>({
     timestamps: true
 })
 
-userSchema.pre('save', function (): void{
-    if(!this.isModified('password')) return;
-    this.password = bcrypt.hashSync(this.password, 10)
+userSchema.pre('save', async function (): Promise<void> {
+    if (!this.isModified('password')) return;
+    this.password = await bcrypt.hash(this.password, 10)
 })
 
 userSchema.methods.ComparePassword = function (password : string): Promise<boolean> {

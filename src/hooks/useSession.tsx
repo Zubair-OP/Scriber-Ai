@@ -18,7 +18,8 @@ interface SessionContextValue {
   user: SessionUser | null;
   loading: boolean;
   isPro: boolean;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<SessionUser | null>;
+  setUser: (user: SessionUser | null) => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -33,12 +34,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchSession = useCallback(async () => {
+  const fetchSession = useCallback(async (): Promise<SessionUser | null> => {
     try {
       const response = await getCurrentSessionApi();
-      setUser(response?.data?.user ?? null);
+      const sessionUser = response?.data?.user ?? null;
+      setUser(sessionUser);
+      return sessionUser;
     } catch {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -50,7 +54,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     })();
   }, [fetchSession]);
 
-  const value: SessionContextValue = { user, loading, isPro: hasProAccess(user?.plan), refetch: fetchSession };
+  const value: SessionContextValue = {
+    user,
+    loading,
+    isPro: hasProAccess(user?.plan),
+    refetch: fetchSession,
+    setUser,
+  };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

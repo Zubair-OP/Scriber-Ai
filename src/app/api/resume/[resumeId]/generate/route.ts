@@ -2,11 +2,12 @@ import { getCurrentUser } from "@/lib/getCurrentUser";
 import { requireProPlan } from "@/lib/plan";
 import { handleApiError } from "@/lib/api-error";
 import { generateAiContent } from "@/lib/gemini";
+import { parseAiJson } from "@/lib/ai-json";
+import { validateObjectId } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 
 export async function POST(
   req: NextRequest,
@@ -20,12 +21,7 @@ export async function POST(
 
     const { resumeId } = await params;
 
-    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, message: "Invalid resume id" },
-        { status: 400 }
-      );
-    }
+    validateObjectId(resumeId);
 
     const resume = await ResumeModel.findOne({
       _id: resumeId,
@@ -192,21 +188,7 @@ export async function POST(
 
     const result = await generateAiContent(prompt);
 
-    if (!result) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, message: "AI failed to generate resume" },
-        { status: 500 }
-      );
-    }
-
-    // Strip any accidental markdown fences from AI output
-    const cleaned = result
-      .trim()
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/i, "");
-
-    const generatedResume = JSON.parse(cleaned);
+    const generatedResume = parseAiJson<Record<string, unknown>>(result);
 
     return NextResponse.json<ApiResponse>(
       {

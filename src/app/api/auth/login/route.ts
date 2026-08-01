@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiResponse } from "@/types/api.types";
 import { LoginBody } from "@/types/user.types";
 import connectToDB from "@/lib/mongodb";
-import UserModel from "@/models/user.model";
+import UserModel from "@/models/User.model";
 import { generateToken, getAuthCookieOptions } from "@/lib/jwt";
 
 

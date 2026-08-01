@@ -1,7 +1,7 @@
 import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
-import UserModel from "@/models/user.model";
+import UserModel from "@/models/User.model";
 import { generateToken, getAuthCookieOptions } from "@/lib/jwt";
 import { RegisterBody } from "@/types/user.types";
 

@@ -1,5 +1,5 @@
 import { stripe } from "@/lib/stripe";
-import UserModel from "@/models/user.model";
+import UserModel from "@/models/User.model";
 
 export async function activateProForUser(
   userId: string,

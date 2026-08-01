@@ -2,6 +2,8 @@ import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { requireProPlan } from "@/lib/plan";
 import { handleApiError } from "@/lib/api-error";
+import { parseAiJson } from "@/lib/ai-json";
+import { parseJsonBody, validateNonEmptyString } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,29 +15,8 @@ export async function POST(req: NextRequest) {
     const userId = await getCurrentUser();
     await requireProPlan(userId);
 
-    const body = await req.json();
-
-    const { resumeText } = body;
-
-    if (!resumeText)
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Missing fields",
-        },
-        { status: 400 }
-      );
-
-
-    if (typeof resumeText !== "string" || resumeText.length > 15000) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Input is too large to process",
-        },
-        { status: 413 }
-      );
-    }
+    const body = await parseJsonBody(req);
+    const resumeText = validateNonEmptyString(body.resumeText, "Resume text", 15000);
     const prompt = `
       You are an expert ATS (Applicant Tracking System) evaluator, technical recruiter, and resume reviewer.
       
@@ -99,15 +80,7 @@ export async function POST(req: NextRequest) {
 
     const result = await generateAiContent(prompt);
 
-    let AtsScore = result;
-    if (typeof result === "string") {
-      try {
-        const cleaned = result.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-        AtsScore = JSON.parse(cleaned);
-      } catch (err) {
-        console.error("Failed to parse ATS score JSON:", err);
-      }
-    }
+    const AtsScore = parseAiJson(result);
 
     return NextResponse.json<ApiResponse>(
       {

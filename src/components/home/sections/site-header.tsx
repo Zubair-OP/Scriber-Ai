@@ -10,7 +10,7 @@ import { useSession } from "@/hooks/useSession";
 import { logoutApi } from "@/apis/auth.api";
 
 const NAV_LINKS = [
-  { href: "/", label: "Features" },
+  { href: "/", label: "Dashboard" },
   { href: "/templates", label: "Templates" },
   { href: "/pricing", label: "Pricing" },
   { href: "/testimonials", label: "Testimonials" },
@@ -27,7 +27,7 @@ export function SiteHeader() {
     await logoutApi();
     await refetch();
     setMobileOpen(false);
-    router.push("/");
+    router.push("/login");
   };
 
   const isActive = (path: string) => {
@@ -77,7 +77,7 @@ export function SiteHeader() {
                     : "text-on-surface-variant hover:text-on-surface hover:bg-surface-subtle"
                 }`}
               >
-                Dashboard
+                Your Resumes
               </Link>
               <button
                 type="button"
@@ -152,7 +152,7 @@ export function SiteHeader() {
                   onClick={() => setMobileOpen(false)}
                   className="sm:hidden text-sm font-medium px-4 py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-subtle transition-colors"
                 >
-                  Dashboard
+                  Resumes
                 </Link>
               ) : (
                 <Link

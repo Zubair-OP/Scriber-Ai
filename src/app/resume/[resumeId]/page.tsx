@@ -92,6 +92,13 @@ export default function ResumeBuilderPage() {
     }
   };
 
+  const handleSaveAndRedirect = async () => {
+    const saved = await persist();
+    if (saved) {
+      router.push("/dashboard");
+    }
+  };
+
   const goToStep = async (nextIndex: number) => {
     const saved = await persist();
     if (saved) {
@@ -202,7 +209,7 @@ export default function ResumeBuilderPage() {
                 {isLastStep ? (
                   <button
                     type="button"
-                    onClick={persist}
+                    onClick={handleSaveAndRedirect}
                     disabled={saving}
                     className="px-6 py-2.5 rounded-full bg-primary-container text-white font-label-lg hover:bg-primary transition-colors disabled:opacity-50"
                   >

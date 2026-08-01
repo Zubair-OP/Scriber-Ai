@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginApi } from "@/apis/auth.api";
 import { LogoIcon } from "@/components/home/ui";
+import { useSession } from "@/hooks/useSession";
 import { sanitizeTemplateInput } from "@/lib/resume-validation";
 
 function LoginForm() {
@@ -12,12 +13,19 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const template = sanitizeTemplateInput(searchParams.get("template"));
   const signupHref = template ? `/signup?template=${template}` : "/signup";
+  const { user, loading: sessionLoading, refetch } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!sessionLoading && user) {
+      router.replace(template ? `/resume/new?template=${template}` : "/");
+    }
+  }, [sessionLoading, user, router, template]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +34,8 @@ function LoginForm() {
 
     try {
       await loginApi({ email, password, rememberMe });
-      router.push(template ? `/resume/new?template=${template}` : "/dashboard");
+      await refetch();
+      router.push(template ? `/resume/new?template=${template}` : "/");
     } catch (err: unknown) {
       if (err && typeof err === "object" && "response" in err) {
         const resErr = err as { response?: { data?: { message?: string } } };

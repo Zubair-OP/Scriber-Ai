@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
 import { chromium } from "playwright";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
+import { validateObjectId } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
 import { ApiResponse } from "@/types/api.types";
@@ -21,12 +21,7 @@ export async function GET(
     const userId = await getCurrentUser();
     const { resumeId } = await params;
 
-    if (!mongoose.Types.ObjectId.isValid(resumeId)) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, message: "Invalid resume id" },
-        { status: 400 }
-      );
-    }
+    validateObjectId(resumeId);
 
     const resume = await ResumeModel.findOne({ _id: resumeId, user_id: userId });
 
@@ -46,7 +41,7 @@ export async function GET(
       );
     }
 
-    const origin = req.nextUrl.origin;
+    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
     browser = await chromium.launch();
     const context = await browser.newContext();

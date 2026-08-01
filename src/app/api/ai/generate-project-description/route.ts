@@ -2,8 +2,8 @@ import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { requireProPlan } from "@/lib/plan";
 import { handleApiError } from "@/lib/api-error";
+import { parseJsonBody, validateNonEmptyString, validateStringArray } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
-import { GenerateProjectDescriptionBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,24 +14,11 @@ export async function POST(req: NextRequest) {
         const userId = await getCurrentUser();
         await requireProPlan(userId);
 
-        const body: GenerateProjectDescriptionBody = await req.json();
+        const body = await parseJsonBody(req);
 
-        const { experienceLevel, jobTitle, techStack } = body;
-
-        if (!experienceLevel || !jobTitle || !Array.isArray(techStack) || techStack.length === 0)
-            return NextResponse.json<ApiResponse>({
-                success: false, message: "Missing fields"
-            }, { status: 400 });
-
-        if (jobTitle.length > 120 || experienceLevel.length > 40 || techStack.length > 20) {
-            return NextResponse.json<ApiResponse>(
-                {
-                    success: false,
-                    message: "Input is too large to process",
-                },
-                { status: 413 }
-            );
-        }
+        const jobTitle = validateNonEmptyString(body.jobTitle, "Job title", 120);
+        const experienceLevel = validateNonEmptyString(body.experienceLevel, "Experience level", 40);
+        const techStack = validateStringArray(body.techStack, "Tech stack", 20);
 
         const prompt = `
             You are an expert resume writer, ATS optimization specialist, and senior software engineer.

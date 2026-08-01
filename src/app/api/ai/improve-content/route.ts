@@ -2,8 +2,8 @@ import { generateAiContent } from "@/lib/gemini";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { requireProPlan } from "@/lib/plan";
 import { handleApiError } from "@/lib/api-error";
+import { parseJsonBody, validateNonEmptyString } from "@/lib/resume-validation";
 import connectToDB from "@/lib/mongodb";
-import type { ImproveContentBody } from "@/types/ai.types";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,28 +14,8 @@ export async function POST(req: NextRequest) {
     const userId = await getCurrentUser();
     await requireProPlan(userId);
 
-    const body: ImproveContentBody = await req.json();
-    const { content } = body;
-
-    if (!content) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Missing fields",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (content.length > 12000) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          message: "Content is too large to process",
-        },
-        { status: 413 }
-      );
-    }
+    const body = await parseJsonBody(req);
+    const content = validateNonEmptyString(body.content, "Content", 12000);
 
     const prompt = `
       You are an expert resume writer, ATS optimization specialist, and technical recruiter.
