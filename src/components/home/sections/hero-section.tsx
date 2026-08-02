@@ -18,11 +18,14 @@ export function HeroSection() {
             Build a Resume That <span className="text-primary">Lands Your Dream Job</span>
           </h1>
           <p className="font-body-lg text-on-surface-variant mb-6 md:mb-7 max-w-xl">
-            Stand out from the crowd with professional, recruiter-approved templates. Our easy-to-use editor and AI suggestions help you create a job-winning resume in minutes.
+            Our free AI resume builder creates ATS-optimized, recruiter-approved resumes in under
+            15 minutes. Get AI-powered bullet point suggestions, real-time keyword scoring, and
+            18+ expert templates — so you land 3x more interviews without the guesswork.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Link
+              <Link
               href={user ? "/dashboard" : "/signup"}
+              aria-label="Build my resume with Scriber AI — free AI resume builder"
               className="bg-primary-container text-white px-5 py-3 rounded-full font-title-md flex items-center justify-center gap-2 hover:bg-primary active:scale-[0.98] transition-all group text-sm md:text-base"
             >
               <span>Build My Resume</span>
@@ -88,7 +91,7 @@ export function HeroSection() {
                 <Image
                   fill
                   className="rounded-b-xl border-t border-surface-variant/50 object-cover"
-                  alt="Scriber Builder Resume Mockup"
+                  alt="Scriber AI resume builder interface — ATS-optimized resume template in the editor"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCdRlCC2OzBruaSy73dDUIwSZ5IoLcfToVG4xnXWW2wMBcLoepPYUL6i5gv7xmlVPl_lpmLk2BVIDZoVYwdufvMEShxbDZdg302VNobAterCYgNK8dllGsk1w-Ul7859vL4-gk9W9z4-cOAtwIr_V_gKv_7HCvUFgnQAsdGSwG2VKGke8MktnwyElWtJEMvElVUijUu4_49kjgJtdh6A6tKNuInKvhEN7DQnbL0COyxXQ1j3qHuAGZFsSdk5PK4vn2p6Qqtpz4EFnK"
                 />
               </div>

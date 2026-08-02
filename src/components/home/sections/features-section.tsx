@@ -23,9 +23,11 @@ export function FeaturesSection() {
             <div className="w-12 h-12 bg-secondary-container/60 rounded-xl flex items-center justify-center mb-5 text-primary">
               <span className="material-symbols-outlined text-[28px]">description</span>
             </div>
-            <h3 className="font-title-lg text-on-surface mb-3">Expert-Approved Templates</h3>
+            <h3 className="font-title-lg text-on-surface mb-3">ATS-Optimized Resume Templates</h3>
             <p className="font-body-md text-on-surface-variant">
-              Handcrafted layouts designed by recruitment experts to bypass ATS filters and catch human eyes.
+              Choose from 18+ recruiter-approved resume templates engineered to pass Applicant
+              Tracking Systems. Each layout uses clean structure, strategic keyword placement, and
+              a hierarchy hiring managers actually scan — so your resume gets read, not rejected.
             </p>
           </div>
         </div>
@@ -36,9 +38,11 @@ export function FeaturesSection() {
             <div className="w-12 h-12 bg-secondary-container/60 rounded-xl flex items-center justify-center mb-5 text-primary">
               <span className="material-symbols-outlined text-[28px]">psychology</span>
             </div>
-            <h3 className="font-title-lg text-on-surface mb-3">AI-Powered Suggestions</h3>
+            <h3 className="font-title-lg text-on-surface mb-3">AI-Powered Resume Suggestions</h3>
             <p className="font-body-md text-on-surface-variant">
-              Smart writing tips and keyword optimization to help you describe your achievements with impact.
+              Describe your role in plain language. Our AI resume builder transforms it into
+              quantified achievements and keyword-optimized bullet points that hiring managers
+              want to see — in seconds. Stop guessing. Start getting callbacks.
             </p>
           </div>
         </div>
@@ -49,9 +53,11 @@ export function FeaturesSection() {
             <div className="w-12 h-12 bg-secondary-container/60 rounded-xl flex items-center justify-center mb-5 text-primary">
               <span className="material-symbols-outlined text-[28px]">tune</span>
             </div>
-            <h3 className="font-title-lg text-on-surface mb-3">Easy Customization</h3>
+            <h3 className="font-title-lg text-on-surface mb-3">Build a Resume in Under 15 Minutes</h3>
             <p className="font-body-md text-on-surface-variant">
-              Drag-and-drop interface that makes adjusting margins, colors, and layouts feel like magic.
+              Go from blank page to polished, job-ready PDF in minutes with our intuitive
+              drag-and-drop editor. Adjust sections, fonts, and formatting instantly —
+              no design experience needed. Your resume, your way, fast.
             </p>
           </div>
         </div>

@@ -6,77 +6,156 @@ import { TestimonialsSection } from "@/components/home/sections/testimonials-sec
 import { CtaSection } from "@/components/home/sections/cta-section";
 import { SiteFooter } from "@/components/home/sections/site-footer";
 
+// Entity: SoftwareApplication (Prompt 18 — entity optimization)
 const schema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Scriber AI Resume Builder",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
-  "description": "Build a professional, ATS-optimized resume in minutes with AI-powered suggestions. Recruiter-approved templates that help you land your dream job.",
+  "description":
+    "Scriber AI is the best free AI resume builder. Create an ATS-optimized, recruiter-approved resume in under 5 minutes with AI-powered suggestions.",
   "url": "https://scriber.ai",
+  "softwareVersion": "2.0",
+  "datePublished": "2023-01-01",
+  "featureList": [
+    "AI-powered resume writing suggestions",
+    "ATS compatibility scoring",
+    "18+ recruiter-approved resume templates",
+    "PDF and Word export",
+    "Real-time ATS keyword analysis",
+    "Cover letter builder",
+    "Drag-and-drop editor",
+  ],
   "offers": {
     "@type": "AggregateOffer",
     "lowPrice": "0",
     "highPrice": "49",
     "priceCurrency": "USD",
-    "offerCount": "3"
+    "offerCount": "3",
   },
   "aggregateRating": {
     "@type": "AggregateRating",
     "ratingValue": "4.9",
-    "reviewCount": "2847"
+    "reviewCount": "2847",
   },
   "author": {
     "@type": "Organization",
-    "name": "Scriber AI"
-  }
+    "name": "Scriber AI",
+  },
 };
 
+// Entity: WebSite with SearchAction — Sitelinks search box signal (Prompt 18)
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Scriber AI",
+  "url": "https://scriber.ai",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://scriber.ai/templates?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+// Entity: Organization — brand authority signals (Prompt 18)
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Scriber AI",
+  "url": "https://scriber.ai",
+  "logo": "https://scriber.ai/favicon.svg",
+  "sameAs": [
+    "https://twitter.com/scriberAI",
+    "https://linkedin.com/company/scriber-ai",
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "availableLanguage": "English",
+  },
+};
+
+// FAQPage — reordered by 4 buyer awareness stages (Prompt 16 search intent mapping)
+// Stage 1: Problem-unaware  →  Stage 2: Problem-aware  →  Stage 3: Solution-aware  →  Stage 4: Ready-to-hire
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
+    // Stage 2: Problem-aware — "why are resumes rejected?"
     {
       "@type": "Question",
-      "name": "How long does it take to build a resume with Scriber AI?",
+      "name": "Why do most resumes get rejected before a human reads them?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Most users create a professional, ATS-optimized resume in under 15 minutes. Our AI suggestions help you write compelling bullet points instantly, so you spend less time staring at a blank page."
-      }
+        "text":
+          "Over 75% of resumes are filtered out by Applicant Tracking Systems (ATS) before a recruiter ever sees them. ATS software scans for specific keywords, formatting patterns, and section structure. Resumes with tables, graphics, or missing keywords get auto-rejected. Scriber AI is purpose-built to pass these filters.",
+      },
     },
+    // Stage 3: Solution-aware — "how does the AI help?"
+    {
+      "@type": "Question",
+      "name": "How does Scriber AI help me land more interviews?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text":
+          "Scriber AI analyzes thousands of successful resumes to suggest the exact keywords, phrasing, and achievements that get noticed. Our AI writes your bullet points, scores your ATS compatibility in real time, and provides recruiter-approved templates — so you stop guessing and start landing interviews.",
+      },
+    },
+    // Stage 3: Solution-aware — ATS pass
     {
       "@type": "Question",
       "name": "Will my resume pass ATS screening software?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Every template is designed to pass Applicant Tracking Systems. Our AI scores your resume's ATS compatibility and suggests improvements to ensure recruiters actually see your application."
-      }
+        "text":
+          "Yes. Every Scriber AI template is engineered to pass Applicant Tracking Systems. Our AI scores your resume's ATS compatibility and suggests targeted improvements — ensuring recruiters actually see your application.",
+      },
     },
+    // Stage 3: Differentiator
     {
       "@type": "Question",
       "name": "What makes Scriber AI different from other resume builders?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "We combine AI-powered content suggestions with recruiter-approved templates. Unlike generic builders, our system analyzes your experience and suggests quantified achievements that hiring managers actually want to see."
-      }
+        "text":
+          "Scriber AI combines AI-powered content suggestions with recruiter-approved templates in one seamless workflow. Unlike generic builders, our system analyzes your experience and surfaces quantified achievements that hiring managers actually want to see — no design skills required.",
+      },
     },
+    // Stage 4: Ready-to-hire — time to value
+    {
+      "@type": "Question",
+      "name": "How long does it take to build a resume with Scriber AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text":
+          "Most users create a professional, ATS-optimized resume in under 15 minutes. Our AI suggestions help you write compelling bullet points instantly, so you spend less time staring at a blank page and more time applying.",
+      },
+    },
+    // Stage 4: Ready-to-hire — download/export
     {
       "@type": "Question",
       "name": "Can I download my resume as a PDF?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Download unlimited PDFs on the Pro plan. Free users can download one resume. All downloads are print-ready and maintain perfect formatting across all devices."
-      }
+        "text":
+          "Yes. Download unlimited PDFs on the Pro plan. Free users can download one resume. All downloads are print-ready and maintain perfect formatting across all devices and ATS systems.",
+      },
     },
+    // Stage 4: Ready-to-hire — templates
     {
       "@type": "Question",
       "name": "How many resume templates are available?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "We offer 18+ professional templates across categories like Modern, Creative, Executive, and Minimalist. Each template is designed by recruitment experts to highlight your strengths and bypass ATS filters."
-      }
-    }
-  ]
+        "text":
+          "Scriber AI offers 18+ professional resume templates across categories including Modern, Creative, Executive, and Minimalist. Each template is designed by recruitment experts to highlight your strengths and pass ATS filters.",
+      },
+    },
+  ],
 };
 
 export default function Home() {
@@ -85,6 +164,14 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       <script
         type="application/ld+json"
@@ -260,43 +347,77 @@ export default function Home() {
               </h2>
             </div>
 
+            {/* FAQ items ordered by buyer awareness stage (Prompt 16) */}
             <div className="space-y-4">
+              {/* Stage 2: Problem-aware */}
               <details className="group border border-surface-variant rounded-xl overflow-hidden">
                 <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
-                  How long does it take to build a resume?
+                  Why do most resumes get rejected before a human reads them?
                   <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
                 </summary>
                 <div className="px-6 pb-4 font-body-md text-on-surface-variant">
-                  Most users create a professional, ATS-optimized resume in under 15 minutes.
-                  Our AI suggestions help you write compelling bullet points instantly, so you
-                  spend less time staring at a blank page.
+                  Over 75% of resumes are filtered out by Applicant Tracking Systems (ATS)
+                  before a recruiter ever sees them. ATS software scans for specific keywords,
+                  formatting patterns, and section structure. Resumes with tables, graphics, or
+                  missing keywords get auto-rejected. Scriber AI is purpose-built to pass these filters.
                 </div>
               </details>
 
+              {/* Stage 3: Solution-aware */}
+              <details className="group border border-surface-variant rounded-xl overflow-hidden">
+                <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
+                  How does Scriber AI help me land more interviews?
+                  <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+                </summary>
+                <div className="px-6 pb-4 font-body-md text-on-surface-variant">
+                  Our AI resume builder analyzes thousands of successful resumes to suggest the exact
+                  keywords, phrasing, and achievements that get noticed. It writes your bullet points,
+                  scores your ATS compatibility in real time, and provides recruiter-approved templates —
+                  so you stop guessing and start landing interviews.
+                </div>
+              </details>
+
+              {/* Stage 3: Solution-aware — ATS */}
               <details className="group border border-surface-variant rounded-xl overflow-hidden">
                 <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
                   Will my resume pass ATS screening software?
                   <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
                 </summary>
                 <div className="px-6 pb-4 font-body-md text-on-surface-variant">
-                  Yes. Every template is designed to pass Applicant Tracking Systems. Our AI
-                  scores your resume&apos;s ATS compatibility and suggests improvements to ensure
-                  recruiters actually see your application.
+                  Yes. Every Scriber AI template is engineered to pass Applicant Tracking Systems.
+                  Our AI scores your resume&apos;s ATS compatibility and suggests targeted
+                  improvements — ensuring recruiters actually see your application.
                 </div>
               </details>
 
+              {/* Stage 3: Differentiator */}
               <details className="group border border-surface-variant rounded-xl overflow-hidden">
                 <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
                   What makes Scriber AI different from other resume builders?
                   <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
                 </summary>
                 <div className="px-6 pb-4 font-body-md text-on-surface-variant">
-                  We combine AI-powered content suggestions with recruiter-approved templates.
-                  Unlike generic builders, our system analyzes your experience and suggests
-                  quantified achievements that hiring managers actually want to see.
+                  Scriber AI combines AI-powered content suggestions with recruiter-approved
+                  templates in one seamless workflow. Unlike generic builders, our system analyzes
+                  your experience and surfaces quantified achievements that hiring managers actually
+                  want to see — no design skills required.
                 </div>
               </details>
 
+              {/* Stage 4: Ready-to-hire — time to value */}
+              <details className="group border border-surface-variant rounded-xl overflow-hidden">
+                <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
+                  How long does it take to build a resume with Scriber AI?
+                  <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+                </summary>
+                <div className="px-6 pb-4 font-body-md text-on-surface-variant">
+                  Most users create a professional, ATS-optimized resume in under 15 minutes.
+                  Our AI suggestions help you write compelling bullet points instantly, so you
+                  spend less time staring at a blank page and more time applying.
+                </div>
+              </details>
+
+              {/* Stage 4: Ready-to-hire — export */}
               <details className="group border border-surface-variant rounded-xl overflow-hidden">
                 <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
                   Can I download my resume as a PDF?
@@ -305,19 +426,20 @@ export default function Home() {
                 <div className="px-6 pb-4 font-body-md text-on-surface-variant">
                   Yes. Download unlimited PDFs on the Pro plan. Free users can download one
                   resume. All downloads are print-ready and maintain perfect formatting across
-                  all devices.
+                  all devices and ATS systems.
                 </div>
               </details>
 
+              {/* Stage 4: Ready-to-hire — templates */}
               <details className="group border border-surface-variant rounded-xl overflow-hidden">
                 <summary className="px-6 py-4 font-title-lg text-on-surface cursor-pointer hover:bg-surface-subtle transition-colors list-none flex justify-between items-center">
                   How many resume templates are available?
                   <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
                 </summary>
                 <div className="px-6 pb-4 font-body-md text-on-surface-variant">
-                  We offer 18+ professional templates across categories like Modern, Creative,
-                  Executive, and Minimalist. Each template is designed by recruitment experts
-                  to highlight your strengths and bypass ATS filters.
+                  Scriber AI offers 18+ professional resume templates across categories like
+                  Modern, Creative, Executive, and Minimalist. Each template is designed by
+                  recruitment experts to highlight your strengths and pass ATS filters.
                 </div>
               </details>
             </div>

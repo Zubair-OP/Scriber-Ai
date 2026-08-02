@@ -11,12 +11,37 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Scriber AI | Build a Resume That Lands Your Dream Job in 15 Minutes",
-  description: "Build a professional, ATS-optimized resume in minutes with AI-powered suggestions. Recruiter-approved templates that help you land 3x more interviews. Free to start.",
-  keywords: ["resume builder", "AI resume", "ATS resume", "resume templates", "job application", "career", "professional resume", "resume maker", "CV builder"],
+  metadataBase: new URL("https://scriber.ai"),
+  title: {
+    default: "Scriber AI | AI Resume Builder — Land 3x More Interviews",
+    template: "%s | Scriber AI",
+  },
+  description:
+    "Scriber AI is the best free AI resume builder. Create an ATS-optimized, recruiter-approved resume in under 15 minutes. Used by 5M+ job seekers. No credit card required.",
+  keywords: [
+    "AI resume builder",
+    "free resume builder",
+    "ATS resume builder",
+    "ATS resume checker",
+    "resume maker",
+    "online resume builder",
+    "professional resume templates",
+    "best resume builder 2025",
+    "resume builder no credit card",
+    "CV builder online",
+    "AI-powered resume",
+    "job application resume",
+    "resume builder for free download",
+    "resume builder ATS optimized",
+  ],
+  authors: [{ name: "Scriber AI", url: "https://scriber.ai" }],
+  creator: "Scriber AI",
+  publisher: "Scriber AI",
+  applicationName: "Scriber AI",
   openGraph: {
-    title: "Scriber AI | Build a Resume That Lands Your Dream Job",
-    description: "Build a professional, ATS-optimized resume in minutes with AI-powered suggestions. Recruiter-approved templates that help you land 3x more interviews.",
+    title: "Scriber AI | AI Resume Builder — Land 3x More Interviews",
+    description:
+      "Scriber AI is the best free AI resume builder. Create an ATS-optimized resume in under 5 minutes. 5M+ job seekers trust Scriber AI.",
     url: "https://scriber.ai",
     siteName: "Scriber AI",
     locale: "en_US",
@@ -24,8 +49,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Scriber AI | Build a Resume That Lands Your Dream Job",
-    description: "Build a professional, ATS-optimized resume in minutes with AI-powered suggestions.",
+    site: "@scriberAI",
+    title: "Scriber AI | AI Resume Builder — Land 3x More Interviews",
+    description:
+      "Build an ATS-optimized resume in under 15 minutes with AI-powered suggestions. Free to start — no credit card required.",
   },
   robots: {
     index: true,

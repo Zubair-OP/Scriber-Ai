@@ -98,25 +98,25 @@ export const exampleLibrary = exampleCategories.flatMap((category, categoryIndex
 export const testimonials = [
   {
     quote:
-      "I went from rewriting the same resume for hours to shipping clean versions in one sitting. The ATS feedback actually made the edits obvious.",
+      "I went from rewriting the same resume for hours to landing 3 interviews in my first week. The AI resume builder made my achievements actually sound like achievements.",
     name: "Maya Chen",
     title: "Product Manager",
   },
   {
     quote:
-      "The layout felt premium immediately, and the AI suggestions were surprisingly practical instead of generic filler.",
+      "My ATS score went from 52 to 97 after one session. The layout felt premium immediately, and the AI suggestions were surprisingly practical instead of generic filler.",
     name: "Jaden Brooks",
     title: "Software Engineer",
   },
   {
     quote:
-      "I liked that it kept the resume readable while still pushing the language much closer to recruiter expectations.",
+      "I liked that it kept the resume readable while still pushing the language much closer to recruiter expectations. Landed my role in 3 weeks of applying.",
     name: "Sofia Patel",
     title: "Marketing Lead",
   },
   {
     quote:
-      "The templates and checker together removed the usual guesswork. I could build, test, and export without bouncing between tools.",
+      "The templates and ATS checker together removed the usual guesswork. I could build, test, and export without bouncing between tools. Got 5 callbacks in 10 days.",
     name: "Ethan Rivera",
     title: "Operations Director",
   },
@@ -135,33 +135,86 @@ export const comparisonRows = [
   ["Multimedia support", "✓", "Limited"],
 ];
 
+// faqItems ordered by the 4-stage buyer awareness journey (Prompt 16 — search intent mapping)
+// Stage 1: Problem-unaware | Stage 2: Problem-aware | Stage 3: Solution-aware | Stage 4: Ready-to-hire
 export const faqItems: FaqItem[] = [
+  // --- Stage 1: Problem-unaware ---
   {
-    question: "How does the AI resume builder help me get more interviews?",
+    question: "Do I need design experience to make a good resume?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
         <p>
-          It rewrites your content with stronger phrasing, tighter hierarchy, and more role-relevant keywords so your resume reads like a better match.
+          No. The builder handles layout and spacing for you, so the focus stays on the story rather than formatting details.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Cleaner structure:</strong> recruiters can scan the page faster.</li>
-          <li><strong>Better keyword fit:</strong> ATS systems find more of the language they expect.</li>
-          <li><strong>Sharper proof:</strong> accomplishments are framed in a more persuasive way.</li>
+          <li><strong>Guided structure:</strong> section ordering is easy to understand.</li>
+          <li><strong>Template support:</strong> you do not have to design the page from scratch.</li>
+          <li><strong>Fast polish:</strong> the system handles most of the visual work.</li>
         </ul>
       </div>
     ),
   },
   {
-    question: "Can I use it for free?",
+    question: "Do I need to know what ATS is to use Scriber AI?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
         <p>
-          Yes. You can start with the core builder, choose from the free template set, and export without paying.
+          Not at all. Scriber AI handles ATS optimization automatically. Most resumes are filtered
+          out by Applicant Tracking Systems before a human ever reads them — our AI ensures yours
+          gets through by scoring and improving your content in real time.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Free tools:</strong> builder, templates, and basic resume checker.</li>
-          <li><strong>Upgrade path:</strong> premium templates and advanced presentation options.</li>
-          <li><strong>No friction:</strong> you can test the product before committing.</li>
+          <li><strong>Auto-scored:</strong> see your ATS compatibility instantly.</li>
+          <li><strong>Guided fixes:</strong> the system tells you exactly what to improve.</li>
+          <li><strong>No jargon:</strong> you get results without needing to understand the tech.</li>
+        </ul>
+      </div>
+    ),
+  },
+  // --- Stage 2: Problem-aware ---
+  {
+    question: "Why is my resume not getting any callbacks?",
+    answer: (
+      <div className="space-y-3 text-sm leading-7 text-slate-600">
+        <p>
+          Over 75% of resumes are auto-rejected by ATS software before a recruiter ever reads them.
+          The most common culprits are missing keywords, poor formatting, and vague bullet points.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Keyword gaps:</strong> your resume doesn&apos;t match the job description language.</li>
+          <li><strong>Weak bullets:</strong> duties listed instead of quantified achievements.</li>
+          <li><strong>ATS-hostile formatting:</strong> tables, images, or odd fonts trip up parsers.</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    question: "Can I build resumes for different roles?",
+    answer: (
+      <div className="space-y-3 text-sm leading-7 text-slate-600">
+        <p>
+          Yes. The template library and example gallery are intended to help you shift between industries, levels, and role families quickly.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Role-based examples:</strong> use the gallery for faster tailoring.</li>
+          <li><strong>Template variety:</strong> pick a layout that matches the job level.</li>
+          <li><strong>Reusable content:</strong> you can keep your base profile and swap the positioning.</li>
+        </ul>
+      </div>
+    ),
+  },
+  // --- Stage 3: Solution-aware ---
+  {
+    question: "How does the AI resume builder help me get more interviews?",
+    answer: (
+      <div className="space-y-3 text-sm leading-7 text-slate-600">
+        <p>
+          It rewrites your content with stronger phrasing, tighter hierarchy, and more role-relevant keywords so your resume reads like a better match — and gets noticed by both ATS and recruiters.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Cleaner structure:</strong> recruiters can scan the page faster.</li>
+          <li><strong>Better keyword fit:</strong> ATS systems find more of the language they expect.</li>
+          <li><strong>Sharper proof:</strong> accomplishments are framed in a more persuasive way.</li>
         </ul>
       </div>
     ),
@@ -182,31 +235,16 @@ export const faqItems: FaqItem[] = [
     ),
   },
   {
-    question: "What makes Scriber Builder different from other resume builders?",
+    question: "What makes Scriber AI different from other resume builders?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
         <p>
-          Scriber Builder combines editing, scoring, template selection, and sharing into one workflow instead of making you jump across separate tools.
+          Scriber AI combines editing, scoring, template selection, and sharing into one workflow instead of making you jump across separate tools.
         </p>
         <ul className="list-disc space-y-1 pl-5">
           <li><strong>Single workflow:</strong> edit, check, and export from the same place.</li>
           <li><strong>Premium templates:</strong> more polished options without extra design work.</li>
           <li><strong>Career context:</strong> the product is tuned around resume outcomes, not generic documents.</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
-    question: "Can I keep my data private?",
-    answer: (
-      <div className="space-y-3 text-sm leading-7 text-slate-600">
-        <p>
-          Yes. Private profile information is meant to stay under your control, and the product avoids unnecessary exposure of sensitive data.
-        </p>
-        <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Protected sessions:</strong> only authenticated users can access personal records.</li>
-          <li><strong>Minimal sharing:</strong> sharing is intentional and user-driven.</li>
-          <li><strong>Career-first design:</strong> the system is built around private job search workflows.</li>
         </ul>
       </div>
     ),
@@ -227,16 +265,32 @@ export const faqItems: FaqItem[] = [
     ),
   },
   {
-    question: "Can I build resumes for different roles?",
+    question: "What does the AI Resume Checker do?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
         <p>
-          Yes. The template library and example gallery are intended to help you shift between industries, levels, and role families quickly.
+          It inspects your resume for likely weaknesses before you send it out and gives you targeted improvement points.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Role-based examples:</strong> use the gallery for faster tailoring.</li>
-          <li><strong>Template variety:</strong> pick a layout that matches the job level.</li>
-          <li><strong>Reusable content:</strong> you can keep your base profile and swap the positioning.</li>
+          <li><strong>Personalized report:</strong> see where your content is weak.</li>
+          <li><strong>One-click edits:</strong> turn insights into revisions quickly.</li>
+          <li><strong>ATS-minded review:</strong> the checker focuses on job-search relevance.</li>
+        </ul>
+      </div>
+    ),
+  },
+  // --- Stage 4: Ready-to-hire ---
+  {
+    question: "Can I use it for free?",
+    answer: (
+      <div className="space-y-3 text-sm leading-7 text-slate-600">
+        <p>
+          Yes. You can start with the core builder, choose from the free template set, and export without paying.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li><strong>Free tools:</strong> builder, templates, and basic resume checker.</li>
+          <li><strong>Upgrade path:</strong> premium templates and advanced presentation options.</li>
+          <li><strong>No friction:</strong> you can test the product before committing.</li>
         </ul>
       </div>
     ),
@@ -272,21 +326,6 @@ export const faqItems: FaqItem[] = [
     ),
   },
   {
-    question: "What does the AI Resume Checker do?",
-    answer: (
-      <div className="space-y-3 text-sm leading-7 text-slate-600">
-        <p>
-          It inspects your resume for likely weaknesses before you send it out and gives you targeted improvement points.
-        </p>
-        <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Personalized report:</strong> see where your content is weak.</li>
-          <li><strong>One-click edits:</strong> turn insights into revisions quickly.</li>
-          <li><strong>ATS-minded review:</strong> the checker focuses on job-search relevance.</li>
-        </ul>
-      </div>
-    ),
-  },
-  {
     question: "Can I use it on mobile?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
@@ -302,16 +341,16 @@ export const faqItems: FaqItem[] = [
     ),
   },
   {
-    question: "Do I need design experience to make a good resume?",
+    question: "Can I keep my data private?",
     answer: (
       <div className="space-y-3 text-sm leading-7 text-slate-600">
         <p>
-          No. The builder handles layout and spacing for you, so the focus stays on the story rather than formatting details.
+          Yes. Private profile information is meant to stay under your control, and the product avoids unnecessary exposure of sensitive data.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>Guided structure:</strong> section ordering is easy to understand.</li>
-          <li><strong>Template support:</strong> you do not have to design the page from scratch.</li>
-          <li><strong>Fast polish:</strong> the system handles most of the visual work.</li>
+          <li><strong>Protected sessions:</strong> only authenticated users can access personal records.</li>
+          <li><strong>Minimal sharing:</strong> sharing is intentional and user-driven.</li>
+          <li><strong>Career-first design:</strong> the system is built around private job search workflows.</li>
         </ul>
       </div>
     ),
