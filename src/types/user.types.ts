@@ -1,4 +1,4 @@
-export interface Iuser {
+export interface IUser {
     name: string,
     email: string,
     password: string,
@@ -14,6 +14,8 @@ export interface Iuser {
     plan?: "free" | "pro" | "enterprise",
     currentPeriodEnd?: Date,
 }
+
+export type Iuser = IUser;
 
 export interface RegisterBody {
     name:string,

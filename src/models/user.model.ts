@@ -1,9 +1,9 @@
 import mongoose, { Document } from "mongoose";
-import { Iuser } from "../types/user.types";
+import { IUser } from "@/types/user.types";
 import bcrypt from "bcrypt"
 
 
-interface NewDocument extends Omit<Iuser, '_id'>,Document{
+interface NewDocument extends Omit<IUser, '_id'>,Document{
     ComparePassword(password: string) : Promise<boolean>
 }
 
