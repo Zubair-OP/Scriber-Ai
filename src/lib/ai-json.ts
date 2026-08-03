@@ -5,7 +5,7 @@ export class AiResponseError extends Error {
   }
 }
 
-// Gemini frequently wraps JSON in markdown fences despite prompt instructions.
+// Gemini frequently wraps JSON in markdown despite prompt instructions.
 const stripCodeFences = (raw: string): string =>
   raw
     .replace(/```json\s*/gi, "")
