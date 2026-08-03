@@ -1,16 +1,15 @@
 import mongoose, { Document } from "mongoose";
 import { IUser } from "@/types/user.types";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 
-
-interface NewDocument extends Omit<IUser, '_id'>,Document{
-    ComparePassword(password: string) : Promise<boolean>
+interface NewDocument extends Omit<IUser, '_id'>, Document {
+    ComparePassword(password: string): Promise<boolean>;
 }
 
 const userSchema = new mongoose.Schema<NewDocument>({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
@@ -27,8 +26,8 @@ const userSchema = new mongoose.Schema<NewDocument>({
     },
     Mobile: {
         type: String,
-        minlength:10,
-        maxlength:10
+        minlength: 10,
+        maxlength: 10,
     },
     passwordResetTokenHash: {
         type: String,
@@ -59,17 +58,18 @@ const userSchema = new mongoose.Schema<NewDocument>({
     currentPeriodEnd: {
         type: Date,
     },
-},{
-    timestamps: true
-})
+}, {
+    timestamps: true,
+});
 
 userSchema.pre('save', async function (): Promise<void> {
     if (!this.isModified('password')) return;
-    this.password = await bcrypt.hash(this.password, 10)
-})
+    this.password = await bcrypt.hash(this.password, 10);
+});
 
-userSchema.methods.ComparePassword = function (password : string): Promise<boolean> {
-    return bcrypt.compare(password, this.password)
-}
+userSchema.methods.ComparePassword = function (password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+};
+
 const UserModel = (mongoose.models.User as mongoose.Model<NewDocument>) || mongoose.model<NewDocument>('User', userSchema);
 export default UserModel;
