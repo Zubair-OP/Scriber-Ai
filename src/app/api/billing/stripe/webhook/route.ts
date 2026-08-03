@@ -1,7 +1,7 @@
 import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { NextRequest, NextResponse } from "next/server";
-import UserModel from "@/models/User.model";
+import UserModel from "@/models/user.model";
 import { stripe } from "@/lib/stripe";
 import { activateProForUser } from "@/lib/billing";
 

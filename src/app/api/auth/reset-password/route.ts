@@ -2,7 +2,7 @@ import crypto from "crypto";
 import connectToDB from "@/lib/mongodb";
 import { ApiResponse } from "@/types/api.types";
 import { ResetPasswordBody } from "@/types/user.types";
-import UserModel from "@/models/User.model";
+import UserModel from "@/models/user.model";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

@@ -3,7 +3,7 @@ import { ApiResponse } from "@/types/api.types";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
-import UserModel from "@/models/User.model";
+import UserModel from "@/models/user.model";
 
 export async function GET() {
   try {

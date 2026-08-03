@@ -1,4 +1,4 @@
-import UserModel from "@/models/User.model";
+import UserModel from "@/models/user.model";
 import { hasProAccess } from "@/lib/plan-limits";
 
 export class PlanRequiredError extends Error {

@@ -2,7 +2,7 @@ import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
 import connectToDB from "@/lib/mongodb";
 import ResumeModel from "@/models/Resume.model";
-import UserModel from "@/models/User.model";
+import UserModel from "@/models/user.model";
 import { getResumeLimit } from "@/lib/plan-limits";
 import { sanitizeTemplateInput } from "@/lib/resume-validation";
 import { ApiResponse } from "@/types/api.types";
