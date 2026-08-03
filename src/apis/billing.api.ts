@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export interface StripeCheckoutPayload {
-  plan?: "pro";
+  plan?: "pro" | "enterprise";
 }
 
 export const getBillingStatusApi = async () => {

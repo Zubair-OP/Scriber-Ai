@@ -39,13 +39,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const plan = (session.metadata?.plan as "pro" | "enterprise") || "pro";
+
     await activateProForUser(userId, {
       customerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
       subscriptionId: typeof session.subscription === "string" ? session.subscription : session.subscription?.id,
+      plan,
     });
 
     return NextResponse.json<ApiResponse>(
-      { success: true, message: "Plan upgraded to Pro" },
+      { success: true, message: `Plan upgraded to ${plan === "enterprise" ? "Enterprise" : "Pro"}` },
       { status: 200 }
     );
   } catch (error) {

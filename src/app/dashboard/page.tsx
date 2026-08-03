@@ -212,24 +212,15 @@ function DashboardPage() {
             <div className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <p className="font-body-md text-on-surface">
                 {user.plan === "pro"
-                  ? "Pro plan is limited to 5 resumes. Contact sales about Enterprise for unlimited resumes."
-                  : "Free plan is limited to 1 resume. Upgrade to Pro for up to 5 resumes and AI assistance."}
+                  ? "Pro plan is limited to 5 resumes. Upgrade to Enterprise for unlimited resumes."
+                  : "Free plan is limited to 1 resume. Upgrade to Pro for up to 5 resumes or Enterprise for unlimited."}
               </p>
-              {user.plan === "pro" ? (
-                <a
-                  href="mailto:sales@scriberbuilder.com"
-                  className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
-                >
-                  Contact Sales
-                </a>
-              ) : (
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
-                >
-                  Upgrade to Pro
-                </Link>
-              )}
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center bg-primary-container text-white font-label-lg px-5 py-2.5 rounded-full hover:bg-primary transition-colors whitespace-nowrap"
+              >
+                {user.plan === "pro" ? "Upgrade to Enterprise" : "Upgrade to Pro"}
+              </Link>
             </div>
           )}
         </section>

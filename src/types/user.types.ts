@@ -45,5 +45,5 @@ export interface JWTPayload {
 }
 
 export interface StripeCheckoutBody {
-    plan?: "pro",
+    plan?: "pro" | "enterprise",
 }

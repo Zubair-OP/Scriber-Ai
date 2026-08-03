@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const body: StripeCheckoutBody = await req.json().catch(() => ({}));
     const plan = body.plan ?? "pro";
 
-    if (plan !== "pro") {
+    if (plan !== "pro" && plan !== "enterprise") {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
@@ -25,7 +25,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID_PRO;
+    const priceMap: Record<string, string | undefined> = {
+      pro: process.env.STRIPE_PRICE_ID_PRO,
+      enterprise: process.env.STRIPE_PRICE_ID_PREMIUM,
+    };
+
+    const priceId = priceMap[plan];
 
     if (!priceId) {
       return NextResponse.json<ApiResponse>(
@@ -59,9 +64,9 @@ export async function POST(req: NextRequest) {
         success_url: `${appUrl}/pricing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pricing?checkout=cancelled`,
         client_reference_id: userId,
-        metadata: { userId },
+        metadata: { userId, plan },
         subscription_data: {
-          metadata: { userId },
+          metadata: { userId, plan },
         },
       },
       // Bucketed to a short window so rapid double-submits are deduped without

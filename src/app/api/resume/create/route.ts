@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
             success: false,
             message:
               user?.plan === "pro"
-                ? "Pro plan is limited to 5 resumes. Contact sales about Enterprise for unlimited resumes."
-                : "Free plan is limited to 1 resume. Upgrade to Pro for up to 5 resumes.",
+                ? "Pro plan is limited to 5 resumes. Upgrade to Enterprise for unlimited resumes."
+                : "Free plan is limited to 1 resume. Upgrade to Pro for up to 5 resumes or Enterprise for unlimited.",
           },
           { status: 403 }
         );

@@ -3,7 +3,7 @@ import UserModel from "@/models/user.model";
 
 export async function activateProForUser(
   userId: string,
-  opts: { customerId?: string; subscriptionId?: string }
+  opts: { customerId?: string; subscriptionId?: string; plan?: "pro" | "enterprise" }
 ) {
   let currentPeriodEnd: Date | undefined;
 
@@ -22,7 +22,7 @@ export async function activateProForUser(
   await UserModel.findByIdAndUpdate(userId, {
     ...(opts.customerId ? { stripeCustomerId: opts.customerId } : {}),
     ...(opts.subscriptionId ? { stripeSubscriptionId: opts.subscriptionId } : {}),
-    plan: "pro",
+    plan: opts.plan || "pro",
     subscriptionStatus: "active",
     ...(currentPeriodEnd ? { currentPeriodEnd } : {}),
   });

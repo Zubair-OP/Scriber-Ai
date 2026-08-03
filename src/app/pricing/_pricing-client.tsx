@@ -43,6 +43,20 @@ const pricingSchema = {
       },
       "url": "https://scriber.ai/pricing",
     },
+    {
+      "@type": "Offer",
+      "name": "Enterprise Plan",
+      "price": "49",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "49",
+        "priceCurrency": "USD",
+        "unitText": "MONTH",
+      },
+      "url": "https://scriber.ai/pricing",
+    },
   ],
 };
 
@@ -55,6 +69,8 @@ function PricingPageContent() {
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState("");
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [enterpriseCheckingOut, setEnterpriseCheckingOut] = useState(false);
+  const [enterpriseCheckoutError, setEnterpriseCheckoutError] = useState("");
 
   useEffect(() => {
     const checkout = searchParams.get("checkout");
@@ -105,6 +121,32 @@ function PricingPageContent() {
     }
   };
 
+  const handleEnterpriseUpgrade = async () => {
+    if (loading) return;
+
+    if (!user) {
+      router.push("/signup");
+      return;
+    }
+
+    setEnterpriseCheckingOut(true);
+    setEnterpriseCheckoutError("");
+
+    try {
+      const response = await createStripeCheckoutSessionApi({ plan: "enterprise" });
+      const url = response?.data?.url;
+      if (url) {
+        window.location.href = url;
+      } else {
+        setEnterpriseCheckoutError("Could not start checkout. Please try again.");
+        setEnterpriseCheckingOut(false);
+      }
+    } catch {
+      setEnterpriseCheckoutError("Could not start checkout. Please try again.");
+      setEnterpriseCheckingOut(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-on-surface">
       <SiteHeader />
@@ -135,7 +177,9 @@ function PricingPageContent() {
           )}
           {upgradeSuccess && (
             <div className="max-w-md mx-auto mb-8 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl">
-              You&apos;re on Pro now. Enjoy unlimited AI assistance and up to 5 resumes.
+              {user?.plan === "enterprise"
+                ? "You\u0027re on Enterprise now. Enjoy unlimited resumes, AI assistance, and priority support."
+                : "You\u0027re on Pro now. Enjoy unlimited AI assistance and up to 5 resumes."}
             </div>
           )}
           {confirmError && (
@@ -207,7 +251,7 @@ function PricingPageContent() {
                     disabled={loading || checkingOut || isPro}
                     className="w-full text-center bg-primary-container text-white font-title-md py-3 rounded-full hover:bg-primary transition-colors disabled:opacity-50"
                   >
-                    {checkingOut ? "Redirecting..." : isPro ? "Current Plan" : "Get Premium"}
+                    {checkingOut ? "Redirecting..." : user?.plan === "enterprise" ? "Included in Enterprise" : user?.plan === "pro" ? "Current Plan" : "Get Premium"}
                   </button>
                   {checkoutError && <p className="text-sm text-red-600 mt-2">{checkoutError}</p>}
                 </div>
@@ -249,12 +293,17 @@ function PricingPageContent() {
                   <span className="font-display-xl text-on-surface">$49</span>
                   <span className="font-body-md text-on-surface-variant">/month</span>
                 </div>
-                <a
-                  href="mailto:hello@scriber.ai"
-                  className="w-full text-center bg-surface-variant text-on-surface font-title-md py-3 rounded-full hover:bg-surface-dim transition-colors mb-8"
-                >
-                  Contact Sales
-                </a>
+                <div className="mb-8">
+                  <button
+                    type="button"
+                    onClick={handleEnterpriseUpgrade}
+                    disabled={loading || enterpriseCheckingOut || user?.plan === "enterprise"}
+                    className="w-full text-center bg-surface-variant text-on-surface font-title-md py-3 rounded-full hover:bg-surface-dim transition-colors disabled:opacity-50"
+                  >
+                    {enterpriseCheckingOut ? "Redirecting..." : user?.plan === "enterprise" ? "Current Plan" : "Get Enterprise"}
+                  </button>
+                  {enterpriseCheckoutError && <p className="text-sm text-red-600 mt-2">{enterpriseCheckoutError}</p>}
+                </div>
                 <ul className="space-y-4 flex-grow font-body-md text-on-surface">
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>
@@ -262,7 +311,7 @@ function PricingPageContent() {
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>
-                    <span>Custom Domains</span>
+                    <span className="font-bold">Unlimited Resumes</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-primary-container text-[20px] fill">check</span>

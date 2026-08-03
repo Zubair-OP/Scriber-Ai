@@ -9,9 +9,15 @@ type StripeSubscriptionPayload = {
   id: string;
   customer: string | { id: string };
   metadata?: Record<string, string>;
-  items?: { data?: Array<{ current_period_end?: number }> };
+  items?: { data?: Array<{ price?: { id?: string }; current_period_end?: number }> };
   status: string;
 };
+
+function determinePlanFromPriceId(priceId?: string): "pro" | "enterprise" {
+  const enterprisePriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+  if (enterprisePriceId && priceId === enterprisePriceId) return "enterprise";
+  return "pro";
+}
 
 type StripeCheckoutSessionPayload = {
   client_reference_id?: string | null;
@@ -36,10 +42,13 @@ const updateUserFromSubscription = async (subscription: StripeSubscriptionPayloa
 
   const currentPeriodEnd = subscription.items?.data?.[0]?.current_period_end;
 
+  const subscriptionPriceId = subscription.items?.data?.[0]?.price?.id;
+  const plan = determinePlanFromPriceId(subscriptionPriceId);
+
   await UserModel.findByIdAndUpdate(userId, {
     stripeSubscriptionId: subscription.id,
     stripeCustomerId: typeof subscription.customer === "string" ? subscription.customer : undefined,
-    plan: subscription.status === "active" ? "pro" : "free",
+    plan: subscription.status === "active" ? plan : "free",
     subscriptionStatus: subscription.status === "active" ? "active" : subscription.status,
     currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
   });
@@ -84,9 +93,11 @@ export async function POST(req: NextRequest) {
       const userId = session.client_reference_id || session.metadata?.userId;
 
       if (userId) {
+        const checkoutPlan = (session.metadata?.plan as "pro" | "enterprise") || "pro";
         await activateProForUser(userId, {
           customerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
           subscriptionId: typeof session.subscription === "string" ? session.subscription : session.subscription?.id,
+          plan: checkoutPlan,
         });
       }
     }
