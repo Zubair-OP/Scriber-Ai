@@ -132,10 +132,15 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("[PDF] Error:", error instanceof Error ? error.message : String(error));
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[PDF] Error:", msg);
     if (browser) {
       await browser.close().catch(() => {});
     }
-    return handleApiError(error, "error in resume pdf export api");
+    // TEMP: expose real error so we can debug — remove after fix
+    return NextResponse.json(
+      { success: false, message: msg },
+      { status: 500 }
+    );
   }
 }
