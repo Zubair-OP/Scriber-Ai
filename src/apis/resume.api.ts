@@ -51,7 +51,7 @@ export const downloadResumePdfApi = async (resumeId: string): Promise<string> =>
   try {
     const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
       responseType: "blob",
-      timeout: 15000,
+      timeout: 8000,
     });
 
     const contentDisposition: string = response.headers["content-disposition"] || "";
@@ -67,12 +67,24 @@ export const downloadResumePdfApi = async (resumeId: string): Promise<string> =>
 
     return fileName;
   } catch (error) {
-    console.warn("[PDF Export] Backend generation failed or timed out. Falling back to print view...", error);
-    if (typeof window !== "undefined") {
-      const printUrl = `/resume/${resumeId}/print?autoPrint=true`;
-      window.open(printUrl, "_blank");
-      return "resume.pdf (opened print dialog)";
+    console.warn("[PDF Export] Backend API failed or timed out. Generating direct client PDF...", error);
+
+    try {
+      const resumeData = await getResumeByIdApi(resumeId);
+      const resume = resumeData?.data || resumeData;
+
+      const { resumeToDraft } = await import("@/lib/resume-draft");
+      const { generateClientPdfFromDraft } = await import("@/lib/pdf-exporter");
+
+      const draft = resumeToDraft(resume as Record<string, unknown>);
+      const title = (resume.title || resume.personalInfo?.fullname || "resume")
+        .replace(/[^a-z0-9-_ ]/gi, "")
+        .trim() || "resume";
+
+      return await generateClientPdfFromDraft(draft, `${title}.pdf`);
+    } catch (fallbackError) {
+      console.error("[PDF Export] Client fallback failed:", fallbackError);
+      throw error;
     }
-    throw error;
   }
 };
