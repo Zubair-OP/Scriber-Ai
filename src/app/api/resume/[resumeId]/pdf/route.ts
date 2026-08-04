@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
@@ -9,11 +8,47 @@ import { ApiResponse } from "@/types/api.types";
 
 export const runtime = "nodejs";
 
+// Vercel Pro = 60s, Hobby = 10s (clamped automatically)
+export const maxDuration = 60;
+
+async function launchBrowser() {
+  const isVercel = !!process.env.VERCEL;
+
+  if (isVercel) {
+    const chromium = await import("@sparticuz/chromium");
+    const puppeteerCore = await import("puppeteer-core");
+
+    // Disable graphics for serverless (reduces memory usage)
+    chromium.default.setGraphicsMode = false;
+
+    return puppeteerCore.default.launch({
+      args: chromium.default.args,
+      defaultViewport: null,
+      executablePath: await chromium.default.executablePath(),
+      headless: true,
+    });
+  }
+
+  // Local dev: use puppeteer (bundles its own Chromium automatically)
+  const puppeteer = await import("puppeteer");
+  return puppeteer.default.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+    ],
+  });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ resumeId: string }> }
 ) {
-  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let browser: any = null;
 
   try {
     await connectToDB();
@@ -41,22 +76,13 @@ export async function GET(
       );
     }
 
+    // NEXT_PUBLIC_APP_URL must be set in Vercel env vars (e.g. https://scriber-ai-jqt3.vercel.app)
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-      ],
-    });
-
+    browser = await launchBrowser();
     const page = await browser.newPage();
 
-    // Set auth cookie
+    // Pass auth cookie so the print page can access the resume
     await page.setCookie({
       name: "token",
       value: token,
@@ -65,12 +91,19 @@ export async function GET(
       sameSite: "Lax",
     });
 
+    // Use "domcontentloaded" instead of "networkidle0":
+    // networkidle0 waits for ALL network to stop (CDN fonts never fully settle)
+    // domcontentloaded fires as soon as HTML is parsed — fast & reliable
     await page.goto(`${origin}/resume/${resumeId}/print`, {
-      waitUntil: "networkidle0",
-      timeout: 30000,
+      waitUntil: "domcontentloaded",
+      timeout: 25000,
     });
 
-    await page.waitForSelector("#resume-print-area", { timeout: 10000 });
+    // Wait for the resume template to actually render
+    await page.waitForSelector("#resume-print-area", { timeout: 8000 });
+
+    // Small delay to let fonts render visually (avoids blank/FOUT fonts in PDF)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const pdfBuffer = await page.pdf({
       format: "A4",

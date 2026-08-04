@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
   },
+  // Tell Vercel's bundler not to tree-shake these server-only packages
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core", "puppeteer"],
 };
 
 export default nextConfig;
