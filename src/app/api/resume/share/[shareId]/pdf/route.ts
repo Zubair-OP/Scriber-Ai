@@ -1,4 +1,3 @@
-import { chromium } from "playwright";
 import { NextRequest, NextResponse } from "next/server";
 import { handleApiError } from "@/lib/api-error";
 import connectToDB from "@/lib/mongodb";
@@ -7,11 +6,47 @@ import { ApiResponse } from "@/types/api.types";
 
 export const runtime = "nodejs";
 
+// Vercel Pro = 60s, Hobby = 10s (clamped automatically)
+export const maxDuration = 60;
+
+async function launchBrowser() {
+  const isVercel = !!process.env.VERCEL;
+
+  if (isVercel) {
+    const chromium = await import("@sparticuz/chromium");
+    const puppeteerCore = await import("puppeteer-core");
+
+    // Disable graphics for serverless (reduces memory usage)
+    chromium.default.setGraphicsMode = false;
+
+    return puppeteerCore.default.launch({
+      args: chromium.default.args,
+      defaultViewport: null,
+      executablePath: await chromium.default.executablePath(),
+      headless: true,
+    });
+  }
+
+  // Local dev: use puppeteer (bundles its own Chromium automatically)
+  const puppeteer = await import("puppeteer");
+  return puppeteer.default.launch({
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+      "--no-first-run",
+    ],
+  });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ shareId: string }> }
 ) {
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let browser: any = null;
 
   try {
     await connectToDB();
@@ -31,11 +66,19 @@ export async function GET(
 
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
-    browser = await chromium.launch();
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    await page.goto(`${origin}/resume/share/${shareId}`, { waitUntil: "networkidle" });
-    await page.waitForSelector("#shared-resume-print-area");
+    browser = await launchBrowser();
+    const page = await browser.newPage();
+
+    // Use "domcontentloaded" instead of "networkidle" for reliability on serverless
+    await page.goto(`${origin}/resume/share/${shareId}`, {
+      waitUntil: "domcontentloaded",
+      timeout: 25000,
+    });
+
+    await page.waitForSelector("#shared-resume-print-area", { timeout: 8000 });
+
+    // Small delay to let fonts render visually
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -46,7 +89,9 @@ export async function GET(
     await browser.close();
     browser = null;
 
-    const fileName = `${(resume.title || resume.personalInfo?.fullname || "resume").replace(/[^a-z0-9-_ ]/gi, "").trim() || "resume"}.pdf`;
+    const fileName = `${(resume.title || resume.personalInfo?.fullname || "resume")
+      .replace(/[^a-z0-9-_ ]/gi, "")
+      .trim() || "resume"}.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
