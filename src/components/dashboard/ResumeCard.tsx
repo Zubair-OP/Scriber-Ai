@@ -8,6 +8,7 @@ import { HealthRing } from "@/components/dashboard/HealthRing";
 import { computeResumeHealth } from "@/lib/resume-health";
 import { resumeToDraft } from "@/lib/resume-draft";
 import { downloadResumePdfApi } from "@/apis/resume.api";
+import { useToast } from "@/components/ui/Toast";
 import type { IResume } from "@/types/resume.types";
 
 function formatDate(value?: string | Date) {
@@ -28,8 +29,8 @@ interface ResumeCardProps {
 export function ResumeCard({ resume, onDelete, deleting }: ResumeCardProps) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState(false);
   const reduceMotion = useReducedMotion();
+  const { addToast, updateToast } = useToast();
   const Template = TEMPLATE_COMPONENTS[resume.template || "classic"];
   const draft = resumeToDraft(resume as unknown as Record<string, unknown>);
   const health = computeResumeHealth(resume);
@@ -45,13 +46,43 @@ export function ResumeCard({ resume, onDelete, deleting }: ResumeCardProps) {
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!resume._id) return;
+    if (!resume._id || downloading) return;
+
     setDownloading(true);
-    setDownloadError(false);
+
+    // Show persistent loading toast
+    const toastId = addToast({
+      type: "loading",
+      title: "Generating PDF…",
+      description: "This may take a few seconds",
+      duration: 0,
+    });
+
     try {
-      await downloadResumePdfApi(resume._id);
-    } catch {
-      setDownloadError(true);
+      const fileName = await downloadResumePdfApi(resume._id);
+
+      // Swap loading toast → success toast
+      updateToast(toastId, {
+        type: "success",
+        title: "PDF Downloaded!",
+        description: fileName,
+        duration: 4000,
+      });
+    } catch (err) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : err instanceof Error
+          ? err.message
+          : undefined;
+
+      // Swap loading toast → error toast
+      updateToast(toastId, {
+        type: "error",
+        title: "Could not generate PDF",
+        description: msg || "Please try again in a moment.",
+        duration: 5000,
+      });
     } finally {
       setDownloading(false);
     }
@@ -124,16 +155,46 @@ export function ResumeCard({ resume, onDelete, deleting }: ResumeCardProps) {
                 <span className="material-symbols-outlined text-[20px]">delete</span>
               </button>
             </div>
+
+            {/* ── Download PDF Button ───────────────────────────────────── */}
             <button
               type="button"
               onClick={handleDownload}
               disabled={downloading}
-              className="w-full inline-flex items-center justify-center gap-1.5 border border-surface-variant text-on-surface-variant font-label-lg py-2.5 rounded-full hover:bg-surface-subtle transition-colors disabled:opacity-50"
+              className="relative w-full inline-flex items-center justify-center gap-1.5 border border-surface-variant text-on-surface-variant font-label-lg py-2.5 rounded-full hover:bg-surface-subtle transition-colors disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
             >
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              {downloading ? "Generating PDF..." : "Download PDF"}
+              {downloading ? (
+                <>
+                  {/* Animated shimmer background */}
+                  <span
+                    className="absolute inset-0 -translate-x-full animate-[shimmer_1.4s_infinite] bg-gradient-to-r from-transparent via-surface-variant/30 to-transparent"
+                    aria-hidden
+                  />
+                  <svg
+                    className="animate-spin shrink-0"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <circle
+                      cx="8" cy="8" r="6"
+                      stroke="#9ca3af"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeDasharray="28"
+                      strokeDashoffset="10"
+                    />
+                  </svg>
+                  <span>Generating PDF…</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                  <span>Download PDF</span>
+                </>
+              )}
             </button>
-            {downloadError && <p className="text-xs text-red-600 text-center">Could not generate the PDF.</p>}
           </div>
         </div>
       </div>

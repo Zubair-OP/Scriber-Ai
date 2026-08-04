@@ -47,7 +47,7 @@ export const toggleResumeShareApi = async (resumeId: string, isPublic: boolean) 
   return response.data;
 };
 
-export const downloadResumePdfApi = async (resumeId: string) => {
+export const downloadResumePdfApi = async (resumeId: string): Promise<string> => {
   const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
     responseType: "blob",
   });
@@ -62,4 +62,6 @@ export const downloadResumePdfApi = async (resumeId: string) => {
   link.download = fileName;
   link.click();
   URL.revokeObjectURL(url);
-};
+
+  return fileName;
+};

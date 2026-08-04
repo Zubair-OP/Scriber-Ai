@@ -240,3 +240,10 @@ body:has(#resume-print-area) {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Chrome / Safari / Opera */
 }
+
+/* Shimmer animation for PDF download loading state */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+

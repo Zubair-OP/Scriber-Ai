@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import puppeteer from "puppeteer";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/getCurrentUser";
 import { handleApiError } from "@/lib/api-error";
@@ -13,7 +13,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ resumeId: string }> }
 ) {
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | null = null;
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
 
   try {
     await connectToDB();
@@ -43,21 +43,34 @@ export async function GET(
 
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
-    browser = await chromium.launch();
-    const context = await browser.newContext();
-    await context.addCookies([
-      {
-        name: "token",
-        value: token,
-        url: origin,
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ]);
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-first-run",
+      ],
+    });
 
-    const page = await context.newPage();
-    await page.goto(`${origin}/resume/${resumeId}/print`, { waitUntil: "networkidle" });
-    await page.waitForSelector("#resume-print-area");
+    const page = await browser.newPage();
+
+    // Set auth cookie
+    await page.setCookie({
+      name: "token",
+      value: token,
+      url: origin,
+      httpOnly: true,
+      sameSite: "Lax",
+    });
+
+    await page.goto(`${origin}/resume/${resumeId}/print`, {
+      waitUntil: "networkidle0",
+      timeout: 30000,
+    });
+
+    await page.waitForSelector("#resume-print-area", { timeout: 10000 });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -68,7 +81,9 @@ export async function GET(
     await browser.close();
     browser = null;
 
-    const fileName = `${(resume.title || resume.personalInfo?.fullname || "resume").replace(/[^a-z0-9-_ ]/gi, "").trim() || "resume"}.pdf`;
+    const fileName = `${(resume.title || resume.personalInfo?.fullname || "resume")
+      .replace(/[^a-z0-9-_ ]/gi, "")
+      .trim() || "resume"}.pdf`;
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,

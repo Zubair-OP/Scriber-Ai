@@ -9,6 +9,7 @@ import { TEMPLATE_COMPONENTS, TEMPLATE_LABELS } from "@/components/builder/templ
 import type { StepProps } from "@/components/builder/types";
 import { HealthRing } from "@/components/dashboard/HealthRing";
 import { computeResumeHealth } from "@/lib/resume-health";
+import { useToast } from "@/components/ui/Toast";
 import { RESUME_TEMPLATES } from "@/types/resume.types";
 
 interface ShareState {
@@ -51,9 +52,10 @@ export function ReviewStep({ draft, updateDraft, resumeId, shareState, onShareSt
   const [atsResult, setAtsResult] = useState<AtsResult | null>(null);
   const [polishNotice, setPolishNotice] = useState("");
   const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState("");
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+  const { addToast, updateToast } = useToast();
 
   const shareUrl = shareState.shareId
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/resume/share/${shareState.shareId}`
@@ -111,16 +113,41 @@ export function ReviewStep({ draft, updateDraft, resumeId, shareState, onShareSt
   };
 
   const handleDownload = async () => {
+    if (downloading) return;
     setDownloading(true);
-    setDownloadError("");
+    const toastId = addToast({
+      type: "loading",
+      title: "Generating PDF…",
+      description: "This may take a few seconds",
+      duration: 0,
+    });
     try {
-      await downloadResumePdfApi(resumeId);
-    } catch {
-      setDownloadError("Could not generate the PDF. Please try again.");
+      const fileName = await downloadResumePdfApi(resumeId);
+      updateToast(toastId, {
+        type: "success",
+        title: "PDF Downloaded!",
+        description: fileName,
+        duration: 4000,
+      });
+    } catch (err) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : err instanceof Error
+          ? err.message
+          : undefined;
+      updateToast(toastId, {
+        type: "error",
+        title: "Could not generate PDF",
+        description: msg || "Please try again in a moment.",
+        duration: 5000,
+      });
     } finally {
       setDownloading(false);
     }
   };
+
+  const SelectedTemplate = TEMPLATE_COMPONENTS[draft.template];
 
   return (
     <div className="space-y-8">
@@ -129,6 +156,33 @@ export function ReviewStep({ draft, updateDraft, resumeId, shareState, onShareSt
         <p className="font-body-md text-on-surface-variant">
           Pick a layout, polish your content, and download your resume.
         </p>
+      </div>
+
+      {/* Mobile resume preview — only visible on small screens (lg:hidden handled by parent column) */}
+      <div className="lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobilePreviewOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-surface-variant bg-surface-subtle/40 font-label-lg text-on-surface"
+        >
+          <span className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-primary-container">preview</span>
+            Resume Preview
+          </span>
+          <span className="material-symbols-outlined text-[18px] text-on-surface-variant">
+            {mobilePreviewOpen ? "expand_less" : "expand_more"}
+          </span>
+        </button>
+        {mobilePreviewOpen && (
+          <div className="mt-3 rounded-2xl border border-surface-variant bg-white overflow-auto p-4">
+            <div
+              className="shadow-[0_6px_24px_rgba(0,0,0,0.08)] origin-top-left"
+              style={{ transform: "scale(0.45)", width: "800px", transformOrigin: "top left" }}
+            >
+              <SelectedTemplate resume={draft} />
+            </div>
+          </div>
+        )}
       </div>
 
       <div>
@@ -259,12 +313,26 @@ export function ReviewStep({ draft, updateDraft, resumeId, shareState, onShareSt
           type="button"
           onClick={handleDownload}
           disabled={downloading}
-          className="inline-flex items-center gap-1.5 bg-primary-container text-white font-label-sm px-4 py-2 rounded-full hover:bg-primary transition-colors disabled:opacity-50"
+          className="relative inline-flex items-center gap-1.5 bg-primary-container text-white font-label-sm px-4 py-2 rounded-full hover:bg-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
         >
-          <span className="material-symbols-outlined text-[16px]">download</span>
-          {downloading ? "Generating PDF..." : "Download PDF"}
+          {downloading ? (
+            <>
+              <span
+                className="absolute inset-0 -translate-x-full animate-[shimmer_1.4s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                aria-hidden
+              />
+              <svg className="animate-spin shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round" strokeDasharray="28" strokeDashoffset="10" />
+              </svg>
+              Generating PDF…
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              Download PDF
+            </>
+          )}
         </button>
-        {downloadError && <span className="text-xs text-red-600">{downloadError}</span>}
       </div>
 
       {polishNotice && (

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { SessionProvider } from "@/hooks/useSession";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 const geist = Geist({
@@ -90,7 +91,9 @@ export default function RootLayout({
         className={`${geist.variable} bg-background text-on-surface font-sans antialiased min-h-screen flex flex-col`}
         suppressHydrationWarning
       >
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   );
