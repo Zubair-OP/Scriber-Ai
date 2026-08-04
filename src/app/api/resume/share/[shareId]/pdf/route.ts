@@ -19,10 +19,15 @@ async function launchBrowser() {
     // Disable graphics for serverless (reduces memory usage)
     chromium.default.setGraphicsMode = false;
 
+    // Provide the remote binary URL explicitly so Chromium downloads to /tmp
+    // Version must match the installed @sparticuz/chromium package version
+    const CHROMIUM_REMOTE_URL =
+      "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.tar";
+
     return puppeteerCore.default.launch({
       args: chromium.default.args,
       defaultViewport: null,
-      executablePath: await chromium.default.executablePath(),
+      executablePath: await chromium.default.executablePath(CHROMIUM_REMOTE_URL),
       headless: true,
     });
   }
@@ -102,6 +107,7 @@ export async function GET(
       },
     });
   } catch (error) {
+    console.error("[Shared PDF] Error:", error instanceof Error ? error.message : String(error));
     if (browser) {
       await browser.close().catch(() => {});
     }
