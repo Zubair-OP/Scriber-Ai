@@ -90,13 +90,18 @@ export async function GET(
     browser = await launchBrowser();
     const page = await browser.newPage();
 
-    // Pass auth cookie so the print page can access the resume
+    // Extract hostname for cookie domain (required for Puppeteer to attach it correctly)
+    const { hostname } = new URL(origin);
+
+    // Pass auth cookie so the print page can authenticate the user
     await page.setCookie({
       name: "token",
       value: token,
-      url: origin,
+      domain: hostname,
+      path: "/",
       httpOnly: true,
       sameSite: "Lax",
+      secure: origin.startsWith("https"),
     });
 
     // Use "domcontentloaded" instead of "networkidle0":
