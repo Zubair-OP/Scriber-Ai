@@ -5,13 +5,17 @@ import { getCurrentUser } from "@/lib/getCurrentUser";
 import ResumeModel from "@/models/Resume.model";
 import { resumeToDraft } from "@/lib/resume-draft";
 import { TEMPLATE_COMPONENTS } from "@/components/builder/templates";
+import { AutoPrintTrigger } from "@/components/AutoPrintTrigger";
 
 export default async function ResumePrintPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ resumeId: string }>;
+  searchParams: Promise<{ autoPrint?: string }>;
 }) {
   const { resumeId } = await params;
+  const { autoPrint } = await searchParams;
 
   if (!mongoose.Types.ObjectId.isValid(resumeId)) {
     notFound();
@@ -37,6 +41,7 @@ export default async function ResumePrintPage({
 
   return (
     <div id="resume-print-area" className="bg-white">
+      {autoPrint === "true" && <AutoPrintTrigger />}
       <Template resume={draft} />
     </div>
   );

@@ -18,18 +18,20 @@ async function launchBrowser() {
     const chromium = await import("@sparticuz/chromium");
     const puppeteerCore = await import("puppeteer-core");
 
-    // Disable graphics for serverless (reduces memory usage)
     chromium.default.setGraphicsMode = false;
 
-    // Provide the remote binary URL explicitly so Chromium downloads to /tmp
-    // Version must match the installed @sparticuz/chromium package version
-    const CHROMIUM_REMOTE_URL =
-      "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.tar";
-
     return puppeteerCore.default.launch({
-      args: chromium.default.args,
-      defaultViewport: null,
-      executablePath: await chromium.default.executablePath(CHROMIUM_REMOTE_URL),
+      args: [
+        ...chromium.default.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--single-process",
+        "--no-zygote",
+      ],
+      defaultViewport: { width: 1920, height: 1080 },
+      executablePath: await chromium.default.executablePath(),
       headless: true,
     });
   }
@@ -81,19 +83,18 @@ export async function GET(
       );
     }
 
-    // req.nextUrl.origin automatically resolves to the correct domain on every environment:
-    // - Local dev: http://localhost:3000
-    // - Vercel preview: https://scriber-ai-xxx.vercel.app
-    // - Vercel production / custom domain: https://your-domain.com
     const origin = req.nextUrl.origin;
 
     browser = await launchBrowser();
     const page = await browser.newPage();
 
-    // Extract hostname for cookie domain (required for Puppeteer to attach it correctly)
     const { hostname } = new URL(origin);
 
-    // Pass auth cookie so the print page can authenticate the user
+    // Set cookie headers for request authentication
+    await page.setExtraHTTPHeaders({
+      cookie: `token=${token}`,
+    });
+
     await page.setCookie({
       name: "token",
       value: token,
@@ -104,12 +105,9 @@ export async function GET(
       secure: origin.startsWith("https"),
     });
 
-    // Use "domcontentloaded" instead of "networkidle0":
-    // networkidle0 waits for ALL network to stop (CDN fonts never fully settle)
-    // domcontentloaded fires as soon as HTML is parsed — fast & reliable
     await page.goto(`${origin}/resume/${resumeId}/print`, {
       waitUntil: "domcontentloaded",
-      timeout: 25000,
+      timeout: 20000,
     });
 
     // Wait for the resume template to actually render

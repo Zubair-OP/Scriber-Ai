@@ -16,18 +16,20 @@ async function launchBrowser() {
     const chromium = await import("@sparticuz/chromium");
     const puppeteerCore = await import("puppeteer-core");
 
-    // Disable graphics for serverless (reduces memory usage)
     chromium.default.setGraphicsMode = false;
 
-    // Provide the remote binary URL explicitly so Chromium downloads to /tmp
-    // Version must match the installed @sparticuz/chromium package version
-    const CHROMIUM_REMOTE_URL =
-      "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.tar";
-
     return puppeteerCore.default.launch({
-      args: chromium.default.args,
-      defaultViewport: null,
-      executablePath: await chromium.default.executablePath(CHROMIUM_REMOTE_URL),
+      args: [
+        ...chromium.default.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--single-process",
+        "--no-zygote",
+      ],
+      defaultViewport: { width: 1920, height: 1080 },
+      executablePath: await chromium.default.executablePath(),
       headless: true,
     });
   }

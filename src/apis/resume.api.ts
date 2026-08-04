@@ -48,20 +48,31 @@ export const toggleResumeShareApi = async (resumeId: string, isPublic: boolean) 
 };
 
 export const downloadResumePdfApi = async (resumeId: string): Promise<string> => {
-  const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
-    responseType: "blob",
-  });
+  try {
+    const response = await axios.get(`/api/resume/${resumeId}/pdf`, {
+      responseType: "blob",
+      timeout: 15000,
+    });
 
-  const contentDisposition: string = response.headers["content-disposition"] || "";
-  const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-  const fileName = fileNameMatch?.[1] || "resume.pdf";
+    const contentDisposition: string = response.headers["content-disposition"] || "";
+    const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+    const fileName = fileNameMatch?.[1] || "resume.pdf";
 
-  const url = URL.createObjectURL(response.data);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
 
-  return fileName;
+    return fileName;
+  } catch (error) {
+    console.warn("[PDF Export] Backend generation failed or timed out. Falling back to print view...", error);
+    if (typeof window !== "undefined") {
+      const printUrl = `/resume/${resumeId}/print?autoPrint=true`;
+      window.open(printUrl, "_blank");
+      return "resume.pdf (opened print dialog)";
+    }
+    throw error;
+  }
 };
