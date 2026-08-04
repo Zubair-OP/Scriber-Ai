@@ -81,8 +81,11 @@ export async function GET(
       );
     }
 
-    // NEXT_PUBLIC_APP_URL must be set in Vercel env vars (e.g. https://scriber-ai-jqt3.vercel.app)
-    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+    // req.nextUrl.origin automatically resolves to the correct domain on every environment:
+    // - Local dev: http://localhost:3000
+    // - Vercel preview: https://scriber-ai-xxx.vercel.app
+    // - Vercel production / custom domain: https://your-domain.com
+    const origin = req.nextUrl.origin;
 
     browser = await launchBrowser();
     const page = await browser.newPage();
