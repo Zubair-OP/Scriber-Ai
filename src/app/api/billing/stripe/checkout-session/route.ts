@@ -86,6 +86,23 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("checkout-session error detail:", error);
+
+    if (error instanceof Error) {
+      const payload = error as unknown as { type?: string; raw?: { message?: string } };
+
+      const message =
+        payload?.raw?.message ||
+        (error.name === "StripeInvalidRequestError" ? error.message : undefined);
+
+      if (message) {
+        return NextResponse.json<ApiResponse>(
+          { success: false, message: `Stripe: ${message}` },
+          { status: 402 }
+        );
+      }
+    }
+
     return handleApiError(error, "error in checkout session api");
   }
 }

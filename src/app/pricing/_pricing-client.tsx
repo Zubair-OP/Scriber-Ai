@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import axios from "axios";
 import { SiteHeader } from "@/components/home/sections/site-header";
 import { SiteFooter } from "@/components/home/sections/site-footer";
 import { useSession } from "@/hooks/useSession";
@@ -112,11 +113,15 @@ function PricingPageContent() {
       if (url) {
         window.location.href = url;
       } else {
-        setCheckoutError("Could not start checkout. Please try again.");
+        setCheckoutError(response?.message || "Could not start checkout. Please try again.");
         setCheckingOut(false);
       }
-    } catch {
-      setCheckoutError("Could not start checkout. Please try again.");
+    } catch (err) {
+      const msg =
+        typeof axios.isAxiosError === "function" && axios.isAxiosError(err)
+          ? (err.response?.data?.message as string) || err.message
+          : (err as Error)?.message;
+      setCheckoutError(msg || "Could not start checkout. Please try again.");
       setCheckingOut(false);
     }
   };
@@ -138,11 +143,15 @@ function PricingPageContent() {
       if (url) {
         window.location.href = url;
       } else {
-        setEnterpriseCheckoutError("Could not start checkout. Please try again.");
+        setEnterpriseCheckoutError(response?.message || "Could not start checkout. Please try again.");
         setEnterpriseCheckingOut(false);
       }
-    } catch {
-      setEnterpriseCheckoutError("Could not start checkout. Please try again.");
+    } catch (err) {
+      const msg =
+        typeof axios.isAxiosError === "function" && axios.isAxiosError(err)
+          ? (err.response?.data?.message as string) || err.message
+          : (err as Error)?.message;
+      setEnterpriseCheckoutError(msg || "Could not start checkout. Please try again.");
       setEnterpriseCheckingOut(false);
     }
   };
