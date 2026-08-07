@@ -85,12 +85,21 @@ function PricingPageContent() {
         await confirmStripeCheckoutSessionApi(sessionId);
         await refetch();
         setUpgradeSuccess(true);
-      } catch {
+      } catch (err: unknown) {
+        const errorMsg =
+          typeof axios.isAxiosError === "function" && axios.isAxiosError(err)
+            ? (err.response?.data?.message as string) || err.message
+            : (err as Error)?.message;
         setConfirmError(
+          errorMsg ||
           "Could not confirm your upgrade automatically. If you completed payment, refresh this page in a moment or contact support."
         );
       } finally {
         setConfirming(false);
+        // Clean up URL parameters so subsequent navigations/refreshes don't re-run old session checks
+        if (typeof window !== "undefined" && window.history?.replaceState) {
+          window.history.replaceState({}, "", "/pricing");
+        }
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
