@@ -54,7 +54,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+    const getAppUrl = (): string => {
+      const originHeader = req.headers.get("origin");
+      if (originHeader && !originHeader.includes("localhost") && !originHeader.includes("127.0.0.1")) {
+        return originHeader;
+      }
+
+      const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+      const proto = req.headers.get("x-forwarded-proto") || "https";
+      if (host && !host.includes("localhost") && !host.includes("127.0.0.1")) {
+        return `${proto}://${host}`;
+      }
+
+      if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+        return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+      }
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+
+      if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+        return process.env.NEXT_PUBLIC_APP_URL;
+      }
+
+      return originHeader || (host ? `${proto}://${host}` : undefined) || process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
+    };
+
+    const appUrl = getAppUrl();
 
     const session = await stripe.checkout.sessions.create(
       {

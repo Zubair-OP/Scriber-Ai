@@ -71,7 +71,12 @@ export async function GET(
       );
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+    const origin =
+      (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")
+        ? process.env.NEXT_PUBLIC_APP_URL
+        : undefined) ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+      req.nextUrl.origin;
 
     browser = await launchBrowser();
     const page = await browser.newPage();
